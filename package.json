@@ -1,0 +1,19 @@
+{
+  "name": "notion-task-manager",
+  "version": "1.0.0",
+  "description": "A web app for managing tasks using Notion databases",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "live-server --port=3000",
+    "serve": "http-server -p 3000"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.14",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  }
+}

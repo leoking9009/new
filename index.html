@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - 스마트 업무 관리</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-tasks"></i>
+                    <h1>TaskFlow</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="themeToggle" title="테마 변경">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="workspace">
+                <div class="workspace-header">
+                    <div class="tabs-container">
+                        <div class="dashboard-stats">
+                            <div class="stat-card" data-filter="all">
+                                <div class="stat-icon">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statAll">0</div>
+                                    <div class="stat-label">전체과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-filter="in-progress">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statInProgress">0</div>
+                                    <div class="stat-label">진행중 과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-filter="due-today">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statDueToday">0</div>
+                                    <div class="stat-label">오늘 마감</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-filter="due-week">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-week"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statDueWeek">0</div>
+                                    <div class="stat-label">7일내 마감</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-filter="overdue">
+                                <div class="stat-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statOverdue">0</div>
+                                    <div class="stat-label">지연과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-filter="urgent">
+                                <div class="stat-icon">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statUrgent">0</div>
+                                    <div class="stat-label">긴급과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-filter="completed">
+                                <div class="stat-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="statCompleted">0</div>
+                                    <div class="stat-label">완료과제</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tabs-row">
+                            <div class="tabs">
+                                <button class="tab-button active" data-tab="main">
+                                    <i class="fas fa-star"></i>
+                                    <span>주요업무</span>
+                                </button>
+                                <button class="tab-button" data-tab="other">
+                                    <i class="fas fa-list-check"></i>
+                                    <span>기타업무</span>
+                                </button>
+                                <button class="tab-button" data-tab="todo">
+                                    <i class="fas fa-check-square"></i>
+                                    <span>TODO</span>
+                                </button>
+                                <button class="tab-button" data-tab="journal">
+                                    <i class="fas fa-book"></i>
+                                    <span>일지</span>
+                                </button>
+                                <button class="tab-button" data-tab="records">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <span>기록</span>
+                                </button>
+                                <button class="tab-button" data-tab="events">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>행사</span>
+                                </button>
+                                <button class="tab-button" data-tab="assignee-stats">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>담당자별 통계</span>
+                                </button>
+                            </div>
+                            <div class="workspace-actions">
+                            <div class="view-toggle">
+                                <button class="btn btn-ghost view-btn active" id="cardViewBtn" data-view="card">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="btn btn-ghost view-btn" id="tableViewBtn" data-view="table">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-ghost" id="refreshBtn">
+                                <i class="fas fa-rotate-right"></i>
+                            </button>
+                            <button class="btn btn-primary" id="addBtn">
+                                <i class="fas fa-plus"></i>
+                                <span>새 업무</span>
+                            </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="dashboard-content" id="dashboardContent" style="display: none;">
+                    <div class="dashboard-header">
+                        <h3 id="dashboardTitle">전체과제</h3>
+                        <div class="dashboard-actions">
+                            <div class="view-toggle">
+                                <button class="btn btn-ghost view-btn active" id="dashboardCardViewBtn" data-view="card">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="btn btn-ghost view-btn" id="dashboardTableViewBtn" data-view="table">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card View -->
+                    <div class="tasks-grid" id="dashboardTasks"></div>
+
+                    <!-- Table View -->
+                    <div class="tasks-table-container" id="dashboardTasksTable" style="display: none;">
+                        <table class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>구분</th>
+                                    <th>과제명</th>
+                                    <th>담당자</th>
+                                    <th>마감일</th>
+                                    <th>완료여부</th>
+                                    <th>긴급여부</th>
+                                    <th>제출처</th>
+                                    <th>생성일</th>
+                                    <th>수정일</th>
+                                    <th>비고</th>
+                                    <th>액션</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardTasksTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-panel active" id="main">
+                        <div class="loading-container" id="mainLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>업무를 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- Card View -->
+                        <div class="tasks-grid" id="mainTasks"></div>
+
+                        <!-- Table View -->
+                        <div class="tasks-table-container" id="mainTasksTable" style="display: none;">
+                            <table class="tasks-table">
+                                <thead>
+                                    <tr>
+                                        <th>과제명</th>
+                                        <th>담당자</th>
+                                        <th>마감일</th>
+                                        <th>완료여부</th>
+                                        <th>긴급여부</th>
+                                        <th>제출처</th>
+                                        <th>생성일</th>
+                                        <th>수정일</th>
+                                        <th>비고</th>
+                                        <th>액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mainTasksTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-panel" id="other">
+                        <div class="loading-container" id="otherLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>업무를 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- Card View -->
+                        <div class="tasks-grid" id="otherTasks"></div>
+
+                        <!-- Table View -->
+                        <div class="tasks-table-container" id="otherTasksTable" style="display: none;">
+                            <table class="tasks-table">
+                                <thead>
+                                    <tr>
+                                        <th>과제명</th>
+                                        <th>담당자</th>
+                                        <th>마감일</th>
+                                        <th>완료여부</th>
+                                        <th>긴급여부</th>
+                                        <th>제출처</th>
+                                        <th>생성일</th>
+                                        <th>수정일</th>
+                                        <th>비고</th>
+                                        <th>액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="otherTasksTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-panel" id="todo">
+                        <div class="loading-container" id="todoLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>TODO를 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- TODO Header with Add Form -->
+                        <div class="todo-header">
+                            <div class="todo-add-form">
+                                <div class="todo-input-container">
+                                    <input type="text" id="todoInput" placeholder="할일을 입력하세요..." class="todo-input">
+                                    <select id="todoPriority" class="todo-priority">
+                                        <option value="보통">보통</option>
+                                        <option value="높음">높음</option>
+                                        <option value="낮음">낮음</option>
+                                    </select>
+                                    <input type="date" id="todoDueDate" class="todo-date">
+                                    <button id="todoAddBtn" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i>
+                                        추가
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TODO List -->
+                        <div class="todo-list" id="todoList"></div>
+
+                        <!-- Table View (hidden by default for TODO) -->
+                        <div class="tasks-table-container" id="todoTasksTable" style="display: none;">
+                            <table class="tasks-table">
+                                <thead>
+                                    <tr>
+                                        <th>완료</th>
+                                        <th>할일</th>
+                                        <th>우선순위</th>
+                                        <th>마감일</th>
+                                        <th>메모</th>
+                                        <th>생성일</th>
+                                        <th>액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="todoTasksTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Journal Tab Panel -->
+                    <div class="tab-panel" id="journal">
+                        <div class="loading-container" id="journalLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>일지를 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- Journal Header -->
+                        <div class="journal-header">
+                            <div class="journal-title">
+                                <h2>일지</h2>
+                                <div class="journal-date-selector">
+                                    <input type="date" id="journalDatePicker" class="journal-date-input">
+                                    <button id="journalTodayBtn" class="btn btn-ghost">오늘</button>
+                                </div>
+                            </div>
+                            <button id="journalCreateBtn" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                새 일지 작성
+                            </button>
+                        </div>
+
+                        <!-- Journal Form -->
+                        <div class="journal-form" id="journalForm" style="display: none;">
+                            <div class="journal-form-content">
+                                <div class="journal-field">
+                                    <label for="journalExercise">
+                                        <i class="fas fa-bicycle"></i>
+                                        실내자전거 달성여부
+                                    </label>
+                                    <div class="checkbox-container">
+                                        <input type="checkbox" id="journalExercise" class="journal-checkbox">
+                                        <span class="checkbox-label">완료</span>
+                                    </div>
+                                </div>
+
+                                <div class="journal-field">
+                                    <label for="journalEmotion">
+                                        <i class="fas fa-heart"></i>
+                                        감정일지
+                                    </label>
+                                    <textarea id="journalEmotion" class="journal-textarea" placeholder="오늘의 감정을 자유롭게 적어보세요..." rows="4"></textarea>
+                                </div>
+
+                                <div class="journal-field">
+                                    <label for="journalGrowth">
+                                        <i class="fas fa-seedling"></i>
+                                        성장일지
+                                    </label>
+                                    <textarea id="journalGrowth" class="journal-textarea" placeholder="오늘 배운 것, 깨달은 것을 적어보세요..." rows="4"></textarea>
+                                </div>
+
+                                <div class="journal-actions">
+                                    <button id="journalSaveBtn" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        저장
+                                    </button>
+                                    <button id="journalCancelBtn" class="btn btn-ghost">
+                                        <i class="fas fa-times"></i>
+                                        취소
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Journal Entry Display -->
+                        <div class="journal-entry" id="journalEntry">
+                            <div class="journal-entry-content">
+                                <div class="journal-item">
+                                    <div class="journal-item-header">
+                                        <i class="fas fa-bicycle"></i>
+                                        <span>실내자전거 달성여부</span>
+                                        <span class="journal-status" id="exerciseStatus">미완료</span>
+                                    </div>
+                                </div>
+
+                                <div class="journal-item">
+                                    <div class="journal-item-header">
+                                        <i class="fas fa-heart"></i>
+                                        <span>감정일지</span>
+                                    </div>
+                                    <div class="journal-item-content" id="emotionContent">
+                                        내용이 없습니다.
+                                    </div>
+                                </div>
+
+                                <div class="journal-item">
+                                    <div class="journal-item-header">
+                                        <i class="fas fa-seedling"></i>
+                                        <span>성장일지</span>
+                                    </div>
+                                    <div class="journal-item-content" id="growthContent">
+                                        내용이 없습니다.
+                                    </div>
+                                </div>
+
+                                <div class="journal-actions">
+                                    <button id="journalEditBtn" class="btn btn-outline">
+                                        <i class="fas fa-edit"></i>
+                                        수정
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Journal History -->
+                        <div class="journal-history" id="journalHistory">
+                            <div class="journal-history-header">
+                                <h3>작성된 일지</h3>
+                                <span class="journal-count" id="journalCount">0개</span>
+                            </div>
+                            <div class="journal-history-list" id="journalHistoryList">
+                                <div class="journal-history-empty">
+                                    작성된 일지가 없습니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Records Tab Panel -->
+                    <div class="tab-panel" id="records">
+                        <div class="loading-container" id="recordsLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>기록을 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- Records Header -->
+                        <div class="records-header">
+                            <div class="records-title">
+                                <h2>기록 관리</h2>
+                                <p class="records-subtitle">중요한 기록과 핵심 내용을 관리하세요</p>
+                            </div>
+                            <button id="recordsCreateBtn" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                새 기록 작성
+                            </button>
+                        </div>
+
+                        <!-- Records Form -->
+                        <div class="records-form" id="recordsForm" style="display: none;">
+                            <div class="records-form-content">
+                                <div class="records-field">
+                                    <label for="recordsSubject">
+                                        <i class="fas fa-tag"></i>
+                                        주제
+                                    </label>
+                                    <input type="text" id="recordsSubject" class="records-input" placeholder="기록 주제를 입력하세요...">
+                                </div>
+
+                                <div class="records-field">
+                                    <label for="recordsDate">
+                                        <i class="fas fa-calendar"></i>
+                                        작성일
+                                    </label>
+                                    <input type="date" id="recordsDate" class="records-date-input">
+                                </div>
+
+                                <div class="records-field">
+                                    <label for="recordsCore">
+                                        <i class="fas fa-star"></i>
+                                        핵심 내용
+                                    </label>
+                                    <textarea id="recordsCore" class="records-textarea" placeholder="핵심 내용을 요약해서 작성하세요..." rows="3"></textarea>
+                                </div>
+
+                                <div class="records-actions">
+                                    <button id="recordsSaveBtn" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        저장
+                                    </button>
+                                    <button id="recordsCancelBtn" class="btn btn-ghost">
+                                        <i class="fas fa-times"></i>
+                                        취소
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Records List -->
+                        <div class="records-list" id="recordsList">
+                            <div class="records-empty">
+                                작성된 기록이 없습니다.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events Tab Panel -->
+                    <div class="tab-panel" id="events">
+                        <div class="loading-container" id="eventsLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>행사를 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- Events Header -->
+                        <div class="events-header">
+                            <div class="events-title">
+                                <h2>행사 관리</h2>
+                                <p class="events-subtitle">행사별 준비사항과 체크리스트를 관리하세요</p>
+                            </div>
+                            <button id="eventsCreateBtn" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                새 행사 추가
+                            </button>
+                        </div>
+
+                        <!-- Events List -->
+                        <div class="events-list" id="eventsList">
+                            <div class="events-empty">
+                                등록된 행사가 없습니다.
+                            </div>
+                        </div>
+
+                        <!-- Event Detail Modal -->
+                        <div class="event-modal" id="eventModal" style="display: none;">
+                            <div class="event-modal-content">
+                                <div class="event-modal-header">
+                                    <h3 id="eventModalTitle">행사 상세</h3>
+                                    <button class="event-modal-close" id="eventModalClose">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                <div class="event-modal-body">
+                                    <!-- Event Form -->
+                                    <div class="event-form" id="eventForm">
+                                        <div class="event-field">
+                                            <label for="eventName">
+                                                <i class="fas fa-calendar"></i>
+                                                행사명
+                                            </label>
+                                            <input type="text" id="eventName" class="event-input" placeholder="행사명을 입력하세요...">
+                                        </div>
+
+                                        <div class="event-field">
+                                            <label for="eventDate">
+                                                <i class="fas fa-clock"></i>
+                                                행사 날짜
+                                            </label>
+                                            <input type="date" id="eventDate" class="event-date-input">
+                                        </div>
+
+                                        <div class="event-actions">
+                                            <button id="eventSaveBtn" class="btn btn-success">
+                                                <i class="fas fa-save"></i>
+                                                저장
+                                            </button>
+                                            <button id="eventCancelBtn" class="btn btn-ghost">
+                                                <i class="fas fa-times"></i>
+                                                취소
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Event Tasks Section -->
+                                    <div class="event-tasks-section" id="eventTasksSection" style="display: none;">
+                                        <div class="event-tasks-header">
+                                            <h4>준비사항 관리</h4>
+                                            <button id="addEventTaskBtn" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                                준비사항 추가
+                                            </button>
+                                        </div>
+
+                                        <!-- Add Task Form -->
+                                        <div class="event-task-form" id="eventTaskForm" style="display: none;">
+                                            <div class="event-task-inputs">
+                                                <input type="date" id="eventTaskDate" class="event-task-date" placeholder="날짜">
+                                                <input type="text" id="eventTaskContent" class="event-task-content" placeholder="준비할 내용을 입력하세요...">
+                                                <button id="saveEventTaskBtn" class="btn btn-success btn-sm">추가</button>
+                                                <button id="cancelEventTaskBtn" class="btn btn-ghost btn-sm">취소</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tasks List -->
+                                        <div class="event-tasks-list" id="eventTasksList">
+                                            <div class="event-tasks-empty">
+                                                준비사항이 없습니다.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignee Overview Content -->
+                <div class="assignee-overview-content" id="assigneeOverviewContent" style="display: none;">
+                    <div class="assignee-overview-header">
+                        <h3>담당자별 현황</h3>
+                        <button class="btn btn-ghost" id="backToMainBtn">
+                            <i class="fas fa-arrow-left"></i>
+                            돌아가기
+                        </button>
+                    </div>
+
+                    <!-- Assignee Statistics Table -->
+                    <div class="assignee-stats-table-container" id="assigneeStatsTable">
+                        <table class="assignee-stats-table">
+                            <thead>
+                                <tr>
+                                    <th>담당자</th>
+                                    <th class="stat-header clickable" data-stat="all">
+                                        <i class="fas fa-tasks"></i>
+                                        전체과제
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="in-progress">
+                                        <i class="fas fa-clock"></i>
+                                        진행중
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="due-today">
+                                        <i class="fas fa-calendar-day"></i>
+                                        오늘마감
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="due-week">
+                                        <i class="fas fa-calendar-week"></i>
+                                        7일내마감
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="overdue">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        지연과제
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="urgent">
+                                        <i class="fas fa-fire"></i>
+                                        긴급과제
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="completed">
+                                        <i class="fas fa-check-circle"></i>
+                                        완료과제
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="assigneeStatsTableBody">
+                                <!-- Assignee rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="assignee-list" id="assigneeList" style="display: none;">
+                        <!-- Assignee cards will be dynamically populated -->
+                    </div>
+
+                    <!-- Selected Assignee Detail -->
+                    <div class="assignee-detail" id="assigneeDetail" style="display: none;">
+                        <div class="assignee-detail-header">
+                            <h4 id="selectedAssigneeName">담당자명</h4>
+                            <div class="assignee-detail-actions">
+                                <button class="btn btn-ghost" id="backToAssigneeListBtn">
+                                    <i class="fas fa-arrow-left"></i>
+                                    담당자 목록
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="assignee-stats">
+                            <div class="stat-card" data-assignee-filter="all">
+                                <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatAll">0</div>
+                                    <div class="stat-label">전체과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-assignee-filter="in-progress">
+                                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatInProgress">0</div>
+                                    <div class="stat-label">진행중 과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-assignee-filter="due-today">
+                                <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatDueToday">0</div>
+                                    <div class="stat-label">오늘 마감</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-assignee-filter="due-week">
+                                <div class="stat-icon"><i class="fas fa-calendar-week"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatDueWeek">0</div>
+                                    <div class="stat-label">7일내 마감</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-assignee-filter="overdue">
+                                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatOverdue">0</div>
+                                    <div class="stat-label">지연과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-assignee-filter="urgent">
+                                <div class="stat-icon"><i class="fas fa-fire"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatUrgent">0</div>
+                                    <div class="stat-label">긴급과제</div>
+                                </div>
+                            </div>
+                            <div class="stat-card" data-assignee-filter="completed">
+                                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="assigneeStatCompleted">0</div>
+                                    <div class="stat-label">완료과제</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="assignee-tasks">
+                            <div class="assignee-tasks-header">
+                                <h5 id="assigneeTasksTitle">전체과제</h5>
+                                <div class="view-toggle">
+                                    <button class="btn btn-ghost view-btn active" id="assigneeCardViewBtn" data-view="card">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="btn btn-ghost view-btn" id="assigneeTableViewBtn" data-view="table">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Card View -->
+                            <div class="tasks-grid" id="assigneeTasks"></div>
+
+                            <!-- Table View -->
+                            <div class="tasks-table-container" id="assigneeTasksTable" style="display: none;">
+                                <table class="tasks-table">
+                                    <thead>
+                                        <tr>
+                                            <th>구분</th>
+                                            <th>과제명</th>
+                                            <th>마감일</th>
+                                            <th>완료여부</th>
+                                            <th>긴급여부</th>
+                                            <th>제출처</th>
+                                            <th>생성일</th>
+                                            <th>수정일</th>
+                                            <th>비고</th>
+                                            <th>액션</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assigneeTasksTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignee Statistics Tab Content -->
+            <div class="tab-content" id="assignee-stats-content" style="display: none;">
+                <div class="assignee-stats-page">
+                    <div class="page-header">
+                        <h2>
+                            <i class="fas fa-chart-bar"></i>
+                            담당자별 통계 현황
+                        </h2>
+                        <p class="page-description">담당자별 업무 현황과 통계를 확인할 수 있습니다.</p>
+                    </div>
+
+                    <!-- Statistics Table -->
+                    <div class="stats-table-container">
+                        <table class="assignee-stats-table">
+                            <thead>
+                                <tr>
+                                    <th>담당자</th>
+                                    <th class="stat-header clickable" data-stat="all">
+                                        <i class="fas fa-tasks"></i>
+                                        전체과제
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="in-progress">
+                                        <i class="fas fa-clock"></i>
+                                        진행중
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="due-today">
+                                        <i class="fas fa-calendar-day"></i>
+                                        오늘마감
+                                    </th>
+                                    <th class="stat-header clickable" data-stat="due-week">
+                                        <i class="fas fa-calendar-week"></i>
+                                        7일내마감
+                                    </th>
+                                    <th class="stat-header clickable overdue" data-stat="overdue">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        지연과제
+                                    </th>
+                                    <th class="stat-header clickable urgent" data-stat="urgent">
+                                        <i class="fas fa-fire"></i>
+                                        긴급과제
+                                    </th>
+                                    <th class="stat-header clickable completed" data-stat="completed">
+                                        <i class="fas fa-check-circle"></i>
+                                        완료과제
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="assigneeStatsPageTableBody">
+                                <tr>
+                                    <td colspan="8" class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        데이터를 불러오는 중...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Task Detail Modal for Statistics -->
+                    <div class="assignee-task-detail" id="assigneeTaskDetail" style="display: none;">
+                        <div class="task-detail-header">
+                            <h3 id="taskDetailTitle">담당자별 업무 상세</h3>
+                            <button class="btn btn-ghost" id="closeTaskDetailBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="task-detail-content">
+                            <div class="tasks-grid" id="taskDetailGrid"></div>
+                            <div class="tasks-table-container" id="taskDetailTable" style="display: none;">
+                                <table class="tasks-table">
+                                    <thead>
+                                        <tr>
+                                            <th>구분</th>
+                                            <th>과제명</th>
+                                            <th>마감일</th>
+                                            <th>완료여부</th>
+                                            <th>긴급여부</th>
+                                            <th>액션</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="taskDetailTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Enhanced Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-plus-circle"></i>
+                    새 업무 추가
+                </h2>
+                <div class="header-actions">
+                    <button type="submit" class="btn btn-primary" form="taskForm">
+                        <i class="fas fa-save"></i>
+                        등록
+                    </button>
+                    <button class="btn-icon close" type="button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="taskForm" class="modal-form">
+                <div class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskTitle">
+                                <i class="fas fa-heading"></i>
+                                과제명
+                            </label>
+                            <input type="text" id="taskTitle" name="title" placeholder="과제명을 입력하세요" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskCategory">
+                                <i class="fas fa-folder"></i>
+                                구분
+                            </label>
+                            <select id="taskCategory" name="category" required>
+                                <option value="">구분을 선택하세요</option>
+                                <option value="main">주요업무</option>
+                                <option value="other">기타업무</option>
+                                <option value="todo">TODO</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskAssignee">
+                                <i class="fas fa-user"></i>
+                                담당자
+                            </label>
+                            <input type="text" id="taskAssignee" name="assignee" placeholder="담당자명을 입력하세요">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskDueDate">
+                                <i class="fas fa-calendar"></i>
+                                마감일
+                            </label>
+                            <input type="date" id="taskDueDate" name="dueDate">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="taskStatus" name="status">
+                                <span class="checkbox-custom"></span>
+                                <i class="fas fa-check"></i>
+                                완료여부
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="taskPriority" name="priority">
+                                <span class="checkbox-custom emergency"></span>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                긴급여부
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskSubmitTo">
+                            <i class="fas fa-building"></i>
+                            제출처
+                        </label>
+                        <input type="text" id="taskSubmitTo" name="submitTo" placeholder="제출처를 입력하세요">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDescription">
+                            <i class="fas fa-align-left"></i>
+                            비고
+                        </label>
+                        <textarea id="taskDescription" name="description" rows="3" placeholder="비고사항을 입력하세요 (선택사항)"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" id="cancelTask">
+                        <i class="fas fa-times"></i>
+                        취소
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
