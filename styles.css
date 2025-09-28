@@ -132,6 +132,23 @@ body {
 .header-actions {
     display: flex;
     gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    margin-right: var(--spacing-sm);
+}
+
+.username {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
 }
 
 /* Main Content */

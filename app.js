@@ -14,6 +14,7 @@ class NotionTaskManager {
         this.allTasks = []; // Store all tasks for dashboard filtering
         this.currentDashboardFilter = 'all';
 
+        this.checkLogin();
         this.initEventListeners();
         this.initTheme();
         this.loadAllTasksForDashboard();
@@ -3696,6 +3697,48 @@ class NotionTaskManager {
             console.error('Error deleting event task:', error);
             this.showNotification('준비사항 삭제에 실패했습니다: ' + error.message, 'error');
         }
+    }
+
+    // 로그인 확인 및 관리
+    checkLogin() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            // 로그인되어 있지 않으면 로그인 페이지로 리다이렉트
+            window.location.href = '/login.html';
+            return;
+        }
+
+        try {
+            const userData = JSON.parse(user);
+            this.updateUserInfo(userData);
+        } catch (error) {
+            console.error('사용자 정보 파싱 오류:', error);
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+    }
+
+    updateUserInfo(userData) {
+        const userInfo = document.getElementById('userInfo');
+        const username = document.getElementById('username');
+
+        if (userInfo && username) {
+            username.textContent = userData.name || userData.email;
+            userInfo.style.display = 'flex';
+        }
+
+        // 로그아웃 버튼 이벤트 리스너 추가
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                this.logout();
+            });
+        }
+    }
+
+    logout() {
+        localStorage.removeItem('user');
+        window.location.href = '/login.html';
     }
 }
 
