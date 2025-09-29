@@ -166,10 +166,6 @@
                     <label for="loginEmail">이메일</label>
                     <input type="email" id="loginEmail" required>
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">비밀번호</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
                 <button type="submit" class="btn btn-primary">로그인</button>
             </form>
             <div class="toggle-form" onclick="toggleForm()">회원가입이 필요하신가요?</div>
@@ -186,10 +182,6 @@
                     <label for="registerEmail">이메일</label>
                     <input type="email" id="registerEmail" required>
                 </div>
-                <div class="form-group">
-                    <label for="registerPassword">비밀번호</label>
-                    <input type="password" id="registerPassword" required minlength="6">
-                </div>
                 <button type="submit" class="btn btn-primary">가입 신청</button>
             </form>
             <div class="toggle-form" onclick="toggleForm()">이미 계정이 있으신가요?</div>
@@ -199,8 +191,9 @@
 
         <div class="description">
             <strong>📝 이용 안내</strong><br>
+            • 이메일 주소만으로 간편하게 가입하실 수 있습니다<br>
             • 회원가입 신청 후 관리자 승인이 필요합니다<br>
-            • 승인 완료 후 이메일로 로그인하실 수 있습니다<br>
+            • 승인 완료 후 이메일만으로 로그인하실 수 있습니다<br>
             • 문의사항이 있으시면 관리자에게 연락해주세요
         </div>
     </div>
@@ -243,13 +236,12 @@
             e.preventDefault();
 
             const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
 
             try {
-                const result = await AuthService.signIn(email, password);
+                const result = await AuthService.signIn(email);
 
                 if (result.success) {
-                    localStorage.setItem('user', JSON.stringify(result.user));
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
                     showMessage('로그인 성공! 메인 페이지로 이동합니다...', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
@@ -269,10 +261,9 @@
 
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
 
             try {
-                const result = await AuthService.signUp(email, password, name);
+                const result = await AuthService.signUp(email, name);
 
                 if (result.success) {
                     showMessage('가입 신청이 완료되었습니다! 관리자 승인을 기다려주세요.', 'success');
@@ -290,7 +281,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Supabase 인증 상태 확인
             const user = await AuthService.getCurrentUser();
-            if (user && user.status === 'approved') {
+            if (user && (user.status === 'approved' || user.status === '승인')) {
                 // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
                 localStorage.setItem('user', JSON.stringify(user));
                 window.location.href = '/';

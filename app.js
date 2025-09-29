@@ -3702,13 +3702,23 @@ class NotionTaskManager {
     // 로그인 확인 및 관리
     async checkLogin() {
         try {
+            console.log('🔍 Starting checkLogin...');
             const user = await AuthService.getCurrentUser();
-            if (!user || user.status !== 'approved') {
-                // 로그인되어 있지 않거나 승인되지 않았으면 로그인 페이지로 리다이렉트
+            console.log('👤 User data from getCurrentUser:', user);
+
+            if (!user) {
+                console.log('❌ No user found, redirecting to login');
                 window.location.href = '/login.html';
                 return;
             }
 
+            if (user.status !== 'approved' && user.status !== '승인') {
+                console.log('❌ User not approved, status:', user.status);
+                window.location.href = '/login.html';
+                return;
+            }
+
+            console.log('✅ User approved, setting current user');
             this.currentUser = user;
             this.updateUserInfo(user);
         } catch (error) {

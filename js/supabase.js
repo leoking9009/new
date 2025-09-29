@@ -7,78 +7,45 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 인증 관련 유틸리티 함수
 class AuthService {
-    static async signUp(email, password, name) {
+    static async signUp(email, name) {
         try {
-            // 1. Supabase Auth로 사용자 등록
-            const { data, error } = await supabaseClient.auth.signUp({
-                email: email,
-                password: password,
+            // Notion 서버로 회원가입 요청
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'register',
+                    email: email,
+                    name: name
+                })
             });
 
-            if (error) throw error;
-
-            // 2. users 테이블에 추가 정보 저장
-            if (data.user) {
-                const { error: insertError } = await supabaseClient
-                    .from('users')
-                    .insert([
-                        {
-                            id: data.user.id,
-                            email: email,
-                            name: name,
-                            approval_status: 'pending'
-                        }
-                    ]);
-
-                if (insertError) throw insertError;
-            }
-
-            return { success: true, user: data.user };
+            const result = await response.json();
+            return result;
         } catch (error) {
             console.error('회원가입 오류:', error);
             return { success: false, message: error.message };
         }
     }
 
-    static async signIn(email, password) {
+    static async signIn(email) {
         try {
-            // 1. Supabase Auth로 로그인
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password,
+            // Notion 서버로 로그인 요청
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'login',
+                    email: email
+                })
             });
 
-            if (error) throw error;
-
-            // 2. users 테이블에서 승인 상태 확인
-            const { data: userData, error: userError } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('id', data.user.id)
-                .single();
-
-            if (userError) throw userError;
-
-            // 3. 승인 상태 확인
-            if (userData.approval_status !== 'approved') {
-                await supabaseClient.auth.signOut();
-                return {
-                    success: false,
-                    message: userData.approval_status === 'pending'
-                        ? '아직 관리자 승인이 완료되지 않았습니다. 잠시 후 다시 시도해주세요.'
-                        : '계정이 승인되지 않았습니다. 관리자에게 문의해주세요.'
-                };
-            }
-
-            return {
-                success: true,
-                user: {
-                    id: data.user.id,
-                    email: data.user.email,
-                    name: userData.name,
-                    status: userData.approval_status
-                }
-            };
+            const result = await response.json();
+            return result;
         } catch (error) {
             console.error('로그인 오류:', error);
             return { success: false, message: error.message };
@@ -87,8 +54,8 @@ class AuthService {
 
     static async signOut() {
         try {
-            const { error } = await supabaseClient.auth.signOut();
-            if (error) throw error;
+            // 로컬 스토리지에서 사용자 정보 제거
+            localStorage.removeItem('user');
             return { success: true };
         } catch (error) {
             console.error('로그아웃 오류:', error);
@@ -98,23 +65,18 @@ class AuthService {
 
     static async getCurrentUser() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) return null;
+            // 로컬 스토리지에서 사용자 정보 가져오기
+            const userStr = localStorage.getItem('user');
+            console.log('🔍 LocalStorage user data:', userStr);
 
-            const { data: userData, error } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            if (!userStr) {
+                console.log('❌ No user data in localStorage');
+                return null;
+            }
 
-            if (error) throw error;
-
-            return {
-                id: user.id,
-                email: user.email,
-                name: userData.name,
-                status: userData.approval_status
-            };
+            const user = JSON.parse(userStr);
+            console.log('✅ Parsed user data:', user);
+            return user;
         } catch (error) {
             console.error('사용자 정보 가져오기 오류:', error);
             return null;
