@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "live-server --port=3000",
-    "serve": "http-server -p 3000"
+    "serve": "http-server -p 3000",
+    "build": "echo 'No build step required'",
+    "vercel-build": "echo 'Vercel build complete'"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.14",

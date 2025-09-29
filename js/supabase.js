@@ -10,7 +10,7 @@ class AuthService {
     static async signUp(email, name) {
         try {
             // Notion 서버로 회원가입 요청
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('/api/auth', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -33,7 +33,7 @@ class AuthService {
     static async signIn(email) {
         try {
             // Notion 서버로 로그인 요청
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('/api/auth', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
