@@ -3700,20 +3700,19 @@ class NotionTaskManager {
     }
 
     // 로그인 확인 및 관리
-    checkLogin() {
-        const user = localStorage.getItem('user');
-        if (!user) {
-            // 로그인되어 있지 않으면 로그인 페이지로 리다이렉트
-            window.location.href = '/login.html';
-            return;
-        }
-
+    async checkLogin() {
         try {
-            const userData = JSON.parse(user);
-            this.updateUserInfo(userData);
+            const user = await AuthService.getCurrentUser();
+            if (!user || user.status !== 'approved') {
+                // 로그인되어 있지 않거나 승인되지 않았으면 로그인 페이지로 리다이렉트
+                window.location.href = '/login.html';
+                return;
+            }
+
+            this.currentUser = user;
+            this.updateUserInfo(user);
         } catch (error) {
-            console.error('사용자 정보 파싱 오류:', error);
-            localStorage.removeItem('user');
+            console.error('사용자 정보 확인 오류:', error);
             window.location.href = '/login.html';
         }
     }
@@ -3736,9 +3735,17 @@ class NotionTaskManager {
         }
     }
 
-    logout() {
-        localStorage.removeItem('user');
-        window.location.href = '/login.html';
+    async logout() {
+        try {
+            await AuthService.signOut();
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        } catch (error) {
+            console.error('로그아웃 오류:', error);
+            // 오류가 발생해도 로컬 정보는 제거하고 로그인 페이지로 이동
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
     }
 }
 

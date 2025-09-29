@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오프라인 - TaskFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .offline-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .offline-message {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .offline-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .connection-status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-offline {
+            background: #ff6b6b;
+        }
+
+        .status-online {
+            background: #51cf66;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .checking {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📱</div>
+        <h1 class="offline-title">오프라인 상태</h1>
+        <p class="offline-message">
+            인터넷 연결을 확인할 수 없습니다.<br>
+            네트워크 연결을 확인하고 다시 시도해주세요.
+        </p>
+
+        <div class="offline-actions">
+            <button class="btn btn-primary" onclick="checkConnection()">
+                연결 상태 확인
+            </button>
+            <a href="/" class="btn btn-secondary">
+                다시 시도
+            </a>
+        </div>
+
+        <div class="connection-status">
+            <span class="status-indicator status-offline" id="statusIndicator"></span>
+            <span id="statusText">오프라인</span>
+        </div>
+    </div>
+
+    <script>
+        // 연결 상태 확인
+        function checkConnection() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const checkButton = document.querySelector('.btn-primary');
+
+            // 체크 중 상태
+            statusIndicator.className = 'status-indicator checking';
+            statusText.textContent = '연결 확인 중...';
+            checkButton.textContent = '확인 중...';
+            checkButton.disabled = true;
+
+            // 온라인 상태 확인
+            if (navigator.onLine) {
+                // 실제 네트워크 연결 테스트
+                fetch('/ping', {
+                    method: 'HEAD',
+                    cache: 'no-cache',
+                    timeout: 5000
+                })
+                .then(() => {
+                    // 온라인 상태
+                    statusIndicator.className = 'status-indicator status-online';
+                    statusText.textContent = '온라인 - 연결됨';
+                    checkButton.textContent = '연결 성공!';
+
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                })
+                .catch(() => {
+                    // 여전히 오프라인
+                    showOfflineStatus();
+                });
+            } else {
+                showOfflineStatus();
+            }
+        }
+
+        function showOfflineStatus() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const checkButton = document.querySelector('.btn-primary');
+
+            statusIndicator.className = 'status-indicator status-offline';
+            statusText.textContent = '오프라인';
+            checkButton.textContent = '연결 상태 확인';
+            checkButton.disabled = false;
+        }
+
+        // 온라인/오프라인 이벤트 리스너
+        window.addEventListener('online', () => {
+            console.log('Network connection restored');
+            checkConnection();
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Network connection lost');
+            showOfflineStatus();
+        });
+
+        // 페이지 로드 시 상태 확인
+        document.addEventListener('DOMContentLoaded', () => {
+            if (navigator.onLine) {
+                setTimeout(checkConnection, 1000);
+            }
+        });
+
+        // 주기적으로 연결 상태 확인 (30초마다)
+        setInterval(() => {
+            if (!navigator.onLine) {
+                // 브라우저가 오프라인 상태라고 보고하는 경우에만 확인
+                checkConnection();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

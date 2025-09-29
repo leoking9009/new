@@ -1,0 +1,55 @@
+[build]
+  # 빌드 명령어 (정적 사이트이므로 빌드 과정 없음)
+  command = "echo 'No build process needed'"
+
+  # 배포할 디렉토리
+  publish = "."
+
+[build.environment]
+  # Node.js 버전 설정
+  NODE_VERSION = "18"
+
+# 리디렉션 설정 (SPA를 위해)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 헤더 설정
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# PWA를 위한 매니페스트 파일 캐싱
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# 서비스 워커 파일 캐싱 방지
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# 정적 자산 캐싱
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# 환경 변수 설정 (실제 값은 Netlify 대시보드에서 설정)
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "staging"

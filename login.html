@@ -166,6 +166,10 @@
                     <label for="loginEmail">이메일</label>
                     <input type="email" id="loginEmail" required>
                 </div>
+                <div class="form-group">
+                    <label for="loginPassword">비밀번호</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
                 <button type="submit" class="btn btn-primary">로그인</button>
             </form>
             <div class="toggle-form" onclick="toggleForm()">회원가입이 필요하신가요?</div>
@@ -182,6 +186,10 @@
                     <label for="registerEmail">이메일</label>
                     <input type="email" id="registerEmail" required>
                 </div>
+                <div class="form-group">
+                    <label for="registerPassword">비밀번호</label>
+                    <input type="password" id="registerPassword" required minlength="6">
+                </div>
                 <button type="submit" class="btn btn-primary">가입 신청</button>
             </form>
             <div class="toggle-form" onclick="toggleForm()">이미 계정이 있으신가요?</div>
@@ -197,6 +205,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
     <script>
         let isLoginForm = true;
 
@@ -233,28 +243,17 @@
             e.preventDefault();
 
             const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
             try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, action: 'login' })
-                });
-
-                const result = await response.json();
+                const result = await AuthService.signIn(email, password);
 
                 if (result.success) {
-                    if (result.data.user) {
-                        localStorage.setItem('user', JSON.stringify(result.data.user));
-                        showMessage('로그인 성공! 메인 페이지로 이동합니다...', 'success');
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1500);
-                    } else {
-                        showMessage(result.message || '로그인에 실패했습니다.', 'error');
-                    }
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    showMessage('로그인 성공! 메인 페이지로 이동합니다...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
                 } else {
                     showMessage(result.message || '로그인에 실패했습니다.', 'error');
                 }
@@ -270,17 +269,10 @@
 
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
 
             try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name, email, action: 'register' })
-                });
-
-                const result = await response.json();
+                const result = await AuthService.signUp(email, password, name);
 
                 if (result.success) {
                     showMessage('가입 신청이 완료되었습니다! 관리자 승인을 기다려주세요.', 'success');
@@ -295,10 +287,12 @@
         });
 
         // 페이지 로드시 로그인 상태 확인
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = localStorage.getItem('user');
-            if (user) {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Supabase 인증 상태 확인
+            const user = await AuthService.getCurrentUser();
+            if (user && user.status === 'approved') {
                 // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
+                localStorage.setItem('user', JSON.stringify(user));
                 window.location.href = '/';
             }
         });

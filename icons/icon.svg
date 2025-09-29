@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#gradient)" stroke="#fff" stroke-width="8"/>
+
+  <!-- Task list icon -->
+  <g fill="#fff">
+    <!-- Clipboard background -->
+    <rect x="160" y="120" width="192" height="272" rx="20" ry="20" fill="#fff" opacity="0.95"/>
+
+    <!-- Header -->
+    <rect x="180" y="140" width="152" height="32" rx="4" ry="4" fill="#667eea"/>
+
+    <!-- Task items -->
+    <g opacity="0.8">
+      <!-- Task 1 -->
+      <circle cx="200" cy="200" r="8" fill="#51cf66"/>
+      <rect x="220" y="194" width="100" height="12" rx="2" ry="2" fill="#667eea"/>
+
+      <!-- Task 2 -->
+      <circle cx="200" cy="230" r="8" fill="#51cf66"/>
+      <rect x="220" y="224" width="80" height="12" rx="2" ry="2" fill="#667eea"/>
+
+      <!-- Task 3 -->
+      <circle cx="200" cy="260" r="8" fill="#ffd43b"/>
+      <rect x="220" y="254" width="90" height="12" rx="2" ry="2" fill="#667eea"/>
+
+      <!-- Task 4 -->
+      <circle cx="200" cy="290" r="8" fill="#e9ecef"/>
+      <rect x="220" y="284" width="70" height="12" rx="2" ry="2" fill="#adb5bd"/>
+
+      <!-- Task 5 -->
+      <circle cx="200" cy="320" r="8" fill="#e9ecef"/>
+      <rect x="220" y="314" width="110" height="12" rx="2" ry="2" fill="#adb5bd"/>
+    </g>
+  </g>
+</svg>
