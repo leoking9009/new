@@ -986,8 +986,13 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // 환경변수 설정 (실제 배포시에는 환경변수로 설정)
+        window.SUPABASE_URL = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
+        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
+    </script>
+    <script src="config/supabase.js"></script>
     <script src="app.js"></script>
 
     <!-- Service Worker 등록 -->

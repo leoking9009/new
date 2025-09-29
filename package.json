@@ -13,6 +13,7 @@
   "dependencies": {
     "@notionhq/client": "^2.2.14",
     "@supabase/supabase-js": "^2.58.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^4.21.2"
   },

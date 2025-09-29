@@ -198,8 +198,13 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // 환경변수 설정 (실제 배포시에는 환경변수로 설정)
+        window.SUPABASE_URL = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
+        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
+    </script>
+    <script src="config/supabase.js"></script>
     <script>
         let isLoginForm = true;
 
@@ -236,18 +241,29 @@
             e.preventDefault();
 
             const email = document.getElementById('loginEmail').value;
+            if (!window.SupabaseClient) {
+                showMessage('인증 서비스가 초기화되지 않았습니다.', 'error');
+                return;
+            }
 
             try {
-                const result = await AuthService.signIn(email);
+                // 매직링크 로그인
+                const { data, error } = await window.SupabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        shouldCreateUser: false
+                    }
+                });
 
-                if (result.success) {
-                    localStorage.setItem('user', JSON.stringify(result.data.user));
-                    showMessage('로그인 성공! 메인 페이지로 이동합니다...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
+                if (error) {
+                    console.error('로그인 오류:', error);
+                    if (error.message.includes('User not found')) {
+                        showMessage('등록되지 않은 이메일입니다. 회원가입을 진행해주세요.', 'warning');
+                    } else {
+                        showMessage(error.message || '로그인에 실패했습니다.', 'error');
+                    }
                 } else {
-                    showMessage(result.message || '로그인에 실패했습니다.', 'error');
+                    showMessage('로그인 링크를 이메일로 발송했습니다. 이메일을 확인해주세요.', 'success');
                 }
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -262,14 +278,33 @@
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
 
-            try {
-                const result = await AuthService.signUp(email, name);
+            if (!window.SupabaseClient) {
+                showMessage('인증 서비스가 초기화되지 않았습니다.', 'error');
+                return;
+            }
 
-                if (result.success) {
-                    showMessage('가입 신청이 완료되었습니다! 관리자 승인을 기다려주세요.', 'success');
-                    document.getElementById('registerFormElement').reset();
+            try {
+                // Supabase에 사용자 등록
+                const { data, error } = await window.SupabaseClient.auth.signUp({
+                    email: email,
+                    password: Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2), // 임시 비밀번호
+                    options: {
+                        data: {
+                            name: name
+                        }
+                    }
+                });
+
+                if (error) {
+                    console.error('가입 오류:', error);
+                    if (error.message.includes('already registered')) {
+                        showMessage('이미 등록된 이메일입니다. 로그인을 시도해보세요.', 'warning');
+                    } else {
+                        showMessage(error.message || '가입 신청에 실패했습니다.', 'error');
+                    }
                 } else {
-                    showMessage(result.message || '가입 신청에 실패했습니다.', 'error');
+                    showMessage('가입 신청이 완료되었습니다! 이메일을 확인하여 가입을 완료해주세요.', 'success');
+                    document.getElementById('registerFormElement').reset();
                 }
             } catch (error) {
                 console.error('가입 오류:', error);
@@ -279,12 +314,36 @@
 
         // 페이지 로드시 로그인 상태 확인
         document.addEventListener('DOMContentLoaded', async () => {
-            // Supabase 인증 상태 확인
-            const user = await AuthService.getCurrentUser();
-            if (user && (user.status === 'approved' || user.status === '승인')) {
-                // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
-                localStorage.setItem('user', JSON.stringify(user));
-                window.location.href = '/';
+            if (!window.SupabaseClient || !window.SupabaseClient.supabase) return;
+
+            try {
+                // Supabase 인증 상태 확인
+                const { data: { session } } = await window.SupabaseClient.supabase.auth.getSession();
+
+                if (session && session.user) {
+                    // 사용자 프로필 확인
+                    const { data: profile, error } = await window.SupabaseClient.database.getUserProfile(session.user.id);
+
+                    if (!error && profile) {
+                        // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
+                        localStorage.setItem('user', JSON.stringify({
+                            ...session.user,
+                            profile: profile
+                        }));
+                        window.location.href = 'index.html';
+                    }
+                }
+
+                // URL에서 토큰 확인 (매직링크 로그인)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('access_token')) {
+                    showMessage('로그인 성공! 잠시 후 메인 페이지로 이동합니다...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('인증 상태 확인 오류:', error);
             }
         });
     </script>

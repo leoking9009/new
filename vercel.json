@@ -1,28 +1,9 @@
 {
   "version": 2,
+  "name": "taskflow",
   "builds": [
     {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "js/**/*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "icons/**/*",
+      "src": "index.html",
       "use": "@vercel/static"
     }
   ],
@@ -38,10 +19,50 @@
   ],
   "functions": {
     "api/**/*.js": {
-      "maxDuration": 30
+      "runtime": "@vercel/node@18.x"
     }
   },
   "env": {
-    "NOTION_API_KEY": "@notion_api_key"
-  }
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_KEY": "@supabase_service_key"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api|_next|favicon.ico|manifest.json|icons|sw.js).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
