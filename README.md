@@ -1,12 +1,15 @@
-# 노션 업무관리 웹앱
+# TaskFlow - 스마트 업무 관리 시스템
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/leoking9009/new)
 
 노션 데이터베이스를 활용한 업무관리 웹 애플리케이션입니다.
 
 ## 기능
-- 주요업무와 기타업무 탭으로 구분된 업무 관리
-- 업무 생성, 수정, 삭제
-- 상태 및 우선순위 관리
-- 반응형 웹 디자인
+- 📧 이메일 기반 회원가입/로그인 시스템
+- ✅ 관리자 승인을 통한 회원 관리
+- 📋 노션 데이터베이스 연동 업무 관리
+- 📱 PWA 지원으로 모바일 친화적
+- 🔐 보안 강화된 인증 시스템
 
 ## 사용법
 
@@ -28,9 +31,17 @@
 
 ## 설정
 
-### 노션 API 설정
-환경변수로 설정하세요:
-- `NOTION_API_KEY`: 노션 API 키
+### Vercel 배포 시 환경 변수 설정
+- `NOTION_API_KEY`: 노션 통합 API 키
+
+### 노션 API 설정 (로컬 개발)
+`.env` 파일을 생성하여 설정하세요:
+```
+NOTION_API_KEY=your-notion-api-key
+```
+
+사용되는 데이터베이스:
+- 사용자 DB: `27bc911759c9806e8dbfcfe23a79a065`
 - 주요업무 DB: `232c911759c981829e08fd928b282cd7`
 - 기타업무 DB: `25cc911759c980e7a687d212aa0ee422`
 
