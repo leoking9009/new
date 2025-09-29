@@ -200,11 +200,12 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 환경변수 설정 (실제 배포시에는 환경변수로 설정)
-        window.SUPABASE_URL = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
-        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
+        // 직접 Supabase 클라이언트 생성
+        const supabaseUrl = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
+
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     </script>
-    <script src="config/supabase.js"></script>
     <script>
         let isLoginForm = true;
 
@@ -241,14 +242,14 @@
             e.preventDefault();
 
             const email = document.getElementById('loginEmail').value;
-            if (!window.SupabaseClient) {
+            if (!supabase) {
                 showMessage('인증 서비스가 초기화되지 않았습니다.', 'error');
                 return;
             }
 
             try {
                 // 매직링크 로그인
-                const { data, error } = await window.SupabaseClient.supabase.auth.signInWithOtp({
+                const { data, error } = await supabase.auth.signInWithOtp({
                     email: email,
                     options: {
                         shouldCreateUser: false
@@ -278,14 +279,14 @@
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
 
-            if (!window.SupabaseClient) {
+            if (!supabase) {
                 showMessage('인증 서비스가 초기화되지 않았습니다.', 'error');
                 return;
             }
 
             try {
                 // Supabase에 사용자 등록
-                const { data, error } = await window.SupabaseClient.supabase.auth.signUp({
+                const { data, error } = await supabase.auth.signUp({
                     email: email,
                     password: Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2), // 임시 비밀번호
                     options: {
@@ -314,24 +315,16 @@
 
         // 페이지 로드시 로그인 상태 확인
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!window.SupabaseClient || !window.SupabaseClient.supabase) return;
+            if (!supabase) return;
 
             try {
                 // Supabase 인증 상태 확인
-                const { data: { session } } = await window.SupabaseClient.supabase.auth.getSession();
+                const { data: { session } } = await supabase.auth.getSession();
 
                 if (session && session.user) {
-                    // 사용자 프로필 확인
-                    const { data: profile, error } = await window.SupabaseClient.database.getUserProfile(session.user.id);
-
-                    if (!error && profile) {
-                        // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
-                        localStorage.setItem('user', JSON.stringify({
-                            ...session.user,
-                            profile: profile
-                        }));
-                        window.location.href = 'index.html';
-                    }
+                    // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
+                    localStorage.setItem('user', JSON.stringify(session.user));
+                    window.location.href = 'index.html';
                 }
 
                 // URL에서 토큰 확인 (매직링크 로그인)
