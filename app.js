@@ -952,24 +952,22 @@ class NotionTaskManager {
         try {
             console.log('🔄 Loading all tasks for dashboard...');
 
-            // Load tasks from all databases
-            const [mainTasks, otherTasks, todoTasks] = await Promise.all([
+            // Load tasks from main and other databases only (exclude todo)
+            const [mainTasks, otherTasks] = await Promise.all([
                 this.fetchTasks('main'),
-                this.fetchTasks('other'),
-                this.fetchTasks('todo')
+                this.fetchTasks('other')
             ]);
 
-            console.log(`📊 Loaded ${mainTasks.length} main tasks, ${otherTasks.length} other tasks, and ${todoTasks.length} todo tasks`);
+            console.log(`📊 Loaded ${mainTasks.length} main tasks and ${otherTasks.length} other tasks (todo excluded from dashboard)`);
 
             // Add category to tasks
             const mainTasksWithCategory = mainTasks.map(task => ({ ...task, category: '주요' }));
             const otherTasksWithCategory = otherTasks.map(task => ({ ...task, category: '기타' }));
-            const todoTasksWithCategory = todoTasks.map(task => ({ ...task, category: 'TODO' }));
 
-            // Combine all tasks
-            this.allTasks = [...mainTasksWithCategory, ...otherTasksWithCategory, ...todoTasksWithCategory];
+            // Combine tasks (excluding todo)
+            this.allTasks = [...mainTasksWithCategory, ...otherTasksWithCategory];
 
-            console.log(`✅ Combined ${this.allTasks.length} total tasks (${mainTasksWithCategory.length} main + ${otherTasksWithCategory.length} other + ${todoTasksWithCategory.length} todo)`);
+            console.log(`✅ Combined ${this.allTasks.length} total tasks (${mainTasksWithCategory.length} main + ${otherTasksWithCategory.length} other)`);
 
             // Sort by creation date descending
             this.allTasks.sort((a, b) => {
