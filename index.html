@@ -988,11 +988,63 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 환경변수 설정 (실제 배포시에는 환경변수로 설정)
-        window.SUPABASE_URL = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
-        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
+        // 직접 Supabase 클라이언트 생성
+        const supabaseUrl = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
+
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 페이지 로드시 인증 상태 확인
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // URL에서 매직링크 토큰 확인
+                const urlParams = new URLSearchParams(window.location.search);
+                const accessToken = urlParams.get('access_token');
+                const refreshToken = urlParams.get('refresh_token');
+
+                if (accessToken && refreshToken) {
+                    // 매직링크로 인증된 경우 세션 설정
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+
+                    if (error) {
+                        console.error('Session setup error:', error);
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // URL에서 토큰 제거 (새로고침)
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                // 현재 인증 상태 확인
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (!session) {
+                    // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // 인증된 경우 사용자 정보 표시
+                if (session.user) {
+                    const userInfo = document.getElementById('userInfo');
+                    const username = document.getElementById('username');
+
+                    if (userInfo && username) {
+                        username.textContent = session.user.email || 'User';
+                        userInfo.style.display = 'block';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html';
+            }
+        });
     </script>
-    <script src="config/supabase.js"></script>
     <script src="app.js"></script>
 
     <!-- Service Worker 등록 -->
