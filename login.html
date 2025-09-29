@@ -248,7 +248,7 @@
 
             try {
                 // 매직링크 로그인
-                const { data, error } = await window.SupabaseClient.auth.signInWithOtp({
+                const { data, error } = await window.SupabaseClient.supabase.auth.signInWithOtp({
                     email: email,
                     options: {
                         shouldCreateUser: false
@@ -285,7 +285,7 @@
 
             try {
                 // Supabase에 사용자 등록
-                const { data, error } = await window.SupabaseClient.auth.signUp({
+                const { data, error } = await window.SupabaseClient.supabase.auth.signUp({
                     email: email,
                     password: Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2), // 임시 비밀번호
                     options: {
