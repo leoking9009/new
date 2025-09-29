@@ -996,6 +996,14 @@
 
         // 페이지 로드시 인증 상태 확인
         document.addEventListener('DOMContentLoaded', async () => {
+            // 리다이렉션 루프 방지
+            if (sessionStorage.getItem('auth_checking') === 'true') {
+                sessionStorage.removeItem('auth_checking');
+                return;
+            }
+
+            sessionStorage.setItem('auth_checking', 'true');
+
             try {
                 // URL에서 매직링크 토큰 확인
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1003,6 +1011,7 @@
                 const refreshToken = urlParams.get('refresh_token');
 
                 if (accessToken && refreshToken) {
+                    console.log('Magic link tokens found, setting session...');
                     // 매직링크로 인증된 경우 세션 설정
                     const { data, error } = await supabase.auth.setSession({
                         access_token: accessToken,
@@ -1011,37 +1020,43 @@
 
                     if (error) {
                         console.error('Session setup error:', error);
-                        window.location.href = 'login.html';
-                        return;
+                    } else {
+                        console.log('Session set successfully');
+                        // URL에서 토큰 제거
+                        window.history.replaceState({}, document.title, window.location.pathname);
                     }
-
-                    // URL에서 토큰 제거 (새로고침)
-                    window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
                 // 현재 인증 상태 확인
                 const { data: { session } } = await supabase.auth.getSession();
+                console.log('Current session:', session);
 
-                if (!session) {
-                    // 인증되지 않은 경우 로그인 페이지로 리다이렉트
-                    window.location.href = 'login.html';
+                if (!session || !session.user) {
+                    console.log('No valid session, redirecting to login...');
+                    // 잠시 기다린 후 리다이렉트
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1000);
                     return;
                 }
 
                 // 인증된 경우 사용자 정보 표시
-                if (session.user) {
-                    const userInfo = document.getElementById('userInfo');
-                    const username = document.getElementById('username');
+                console.log('User authenticated:', session.user.email);
+                const userInfo = document.getElementById('userInfo');
+                const username = document.getElementById('username');
 
-                    if (userInfo && username) {
-                        username.textContent = session.user.email || 'User';
-                        userInfo.style.display = 'block';
-                    }
+                if (userInfo && username) {
+                    username.textContent = session.user.email || 'User';
+                    userInfo.style.display = 'block';
                 }
 
             } catch (error) {
                 console.error('Auth check error:', error);
-                window.location.href = 'login.html';
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+            } finally {
+                sessionStorage.removeItem('auth_checking');
             }
         });
     </script>
