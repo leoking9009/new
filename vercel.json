@@ -40,5 +40,8 @@
     "api/**/*.js": {
       "maxDuration": 30
     }
+  },
+  "env": {
+    "NOTION_API_KEY": "@notion_api_key"
   }
 }
