@@ -88,21 +88,5 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false,
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "TaskFlow 데스크톱 화면"
-    },
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "TaskFlow 모바일 화면"
-    }
-  ]
+  "prefer_related_applications": false
 }

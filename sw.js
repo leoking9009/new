@@ -1,7 +1,7 @@
 // Service Worker for TaskFlow PWA
-const CACHE_NAME = 'taskflow-v1.0.2';
-const STATIC_CACHE_NAME = 'taskflow-static-v1.0.2';
-const DYNAMIC_CACHE_NAME = 'taskflow-dynamic-v1.0.2';
+const CACHE_NAME = 'taskflow-v1.1.0';
+const STATIC_CACHE_NAME = 'taskflow-static-v1.1.0';
+const DYNAMIC_CACHE_NAME = 'taskflow-dynamic-v1.1.0';
 
 // 캐시할 정적 파일들
 const STATIC_FILES = [
@@ -10,15 +10,12 @@ const STATIC_FILES = [
   '/login.html',
   '/styles.css',
   '/app.js',
-  '/js/supabase.js',
   '/manifest.json',
-  // 오프라인 페이지
   '/offline.html'
 ];
 
 // 캐시할 외부 리소스들
 const EXTERNAL_RESOURCES = [
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
