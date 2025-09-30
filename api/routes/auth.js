@@ -1,20 +1,9 @@
-// Vercel Serverless Function for Authentication
-export default async function handler(req, res) {
-    // CORS 설정
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+// Authentication route handler
+const express = require('express');
+const router = express.Router();
 
-    // OPTIONS 요청 처리
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
-    // POST 요청만 허용
-    if (req.method !== 'POST') {
-        return res.status(405).json({ success: false, message: 'Method not allowed' });
-    }
-
+// Login endpoint
+router.post('/', async (req, res) => {
     try {
         const { password, action } = req.body;
 
@@ -49,8 +38,7 @@ export default async function handler(req, res) {
                         user: {
                             id: 'admin',
                             name: 'Admin',
-                            email: 'admin@taskflow.com',
-                            status: 'approved'
+                            email: 'admin@taskflow.com'
                         }
                     }
                 });
@@ -75,4 +63,6 @@ export default async function handler(req, res) {
             message: '서버 오류가 발생했습니다.'
         });
     }
-}
+});
+
+module.exports = router;

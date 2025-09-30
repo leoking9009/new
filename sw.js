@@ -1,7 +1,7 @@
 // Service Worker for TaskFlow PWA
-const CACHE_NAME = 'taskflow-v1.0.1';
-const STATIC_CACHE_NAME = 'taskflow-static-v1.0.1';
-const DYNAMIC_CACHE_NAME = 'taskflow-dynamic-v1.0.1';
+const CACHE_NAME = 'taskflow-v1.0.2';
+const STATIC_CACHE_NAME = 'taskflow-static-v1.0.2';
+const DYNAMIC_CACHE_NAME = 'taskflow-dynamic-v1.0.2';
 
 // 캐시할 정적 파일들
 const STATIC_FILES = [
@@ -93,6 +93,12 @@ self.addEventListener('fetch', event => {
 async function handleSameOriginRequest(request) {
   const url = new URL(request.url);
 
+  // POST, PUT, DELETE 등의 요청은 캐시하지 않고 바로 네트워크로 전달
+  if (request.method !== 'GET') {
+    console.log('[SW] Non-GET request, bypassing cache:', request.method, request.url);
+    return fetch(request);
+  }
+
   try {
     // 정적 파일들은 캐시 우선
     if (isStaticFile(url.pathname)) {
@@ -106,7 +112,7 @@ async function handleSameOriginRequest(request) {
     // 네트워크 요청 시도
     const networkResponse = await fetch(request);
 
-    // 성공적인 응답인 경우 캐시에 저장 (동적 컨텐츠)
+    // 성공적인 응답인 경우 캐시에 저장 (동적 컨텐츠, GET 요청만)
     if (networkResponse.status === 200) {
       const responseClone = networkResponse.clone();
 

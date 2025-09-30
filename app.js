@@ -3701,8 +3701,16 @@ class NotionTaskManager {
     async checkLogin() {
         try {
             console.log('🔍 Starting checkLogin...');
-            const user = await AuthService.getCurrentUser();
-            console.log('👤 User data from getCurrentUser:', user);
+            const userStr = localStorage.getItem('user');
+
+            if (!userStr) {
+                console.log('❌ No user found in localStorage, redirecting to login');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const user = JSON.parse(userStr);
+            console.log('👤 User data from localStorage:', user);
 
             if (!user) {
                 console.log('❌ No user found, redirecting to login');
@@ -3710,17 +3718,12 @@ class NotionTaskManager {
                 return;
             }
 
-            if (user.status !== 'approved' && user.status !== '승인') {
-                console.log('❌ User not approved, status:', user.status);
-                window.location.href = '/login.html';
-                return;
-            }
-
-            console.log('✅ User approved, setting current user');
+            console.log('✅ User found, setting current user');
             this.currentUser = user;
             this.updateUserInfo(user);
         } catch (error) {
             console.error('사용자 정보 확인 오류:', error);
+            localStorage.removeItem('user');
             window.location.href = '/login.html';
         }
     }
@@ -3745,7 +3748,6 @@ class NotionTaskManager {
 
     async logout() {
         try {
-            await AuthService.signOut();
             localStorage.removeItem('user');
             window.location.href = '/login.html';
         } catch (error) {

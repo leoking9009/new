@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>TaskFlow - 로그인</title>
     <style>
         * {
@@ -163,68 +164,23 @@
         <div id="loginForm" class="form-container active">
             <form id="loginFormElement">
                 <div class="form-group">
-                    <label for="loginEmail">이메일</label>
-                    <input type="email" id="loginEmail" required>
+                    <label for="loginPassword">비밀번호</label>
+                    <input type="password" id="loginPassword" name="password" required placeholder="비밀번호를 입력하세요">
                 </div>
                 <button type="submit" class="btn btn-primary">로그인</button>
             </form>
-            <div class="toggle-form" onclick="toggleForm()">회원가입이 필요하신가요?</div>
-        </div>
-
-        <!-- 회원가입 폼 -->
-        <div id="registerForm" class="form-container">
-            <form id="registerFormElement">
-                <div class="form-group">
-                    <label for="registerName">이름</label>
-                    <input type="text" id="registerName" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerEmail">이메일</label>
-                    <input type="email" id="registerEmail" required>
-                </div>
-                <button type="submit" class="btn btn-primary">가입 신청</button>
-            </form>
-            <div class="toggle-form" onclick="toggleForm()">이미 계정이 있으신가요?</div>
         </div>
 
         <div id="message" class="message"></div>
 
         <div class="description">
             <strong>📝 이용 안내</strong><br>
-            • 이메일 주소만으로 간편하게 가입하실 수 있습니다<br>
-            • 회원가입 신청 후 관리자 승인이 필요합니다<br>
-            • 승인 완료 후 이메일만으로 로그인하실 수 있습니다<br>
-            • 문의사항이 있으시면 관리자에게 연락해주세요
+            • 비밀번호를 입력하여 로그인하세요<br>
+            • 개인 업무 관리 시스템입니다
         </div>
     </div>
 
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 직접 Supabase 클라이언트 생성
-        const supabaseUrl = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
-
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
-    <script>
-        let isLoginForm = true;
-
-        function toggleForm() {
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-
-            if (isLoginForm) {
-                loginForm.classList.remove('active');
-                registerForm.classList.add('active');
-            } else {
-                registerForm.classList.remove('active');
-                loginForm.classList.add('active');
-            }
-
-            isLoginForm = !isLoginForm;
-            hideMessage();
-        }
-
         function showMessage(text, type = 'success') {
             const message = document.getElementById('message');
             message.textContent = text;
@@ -241,30 +197,32 @@
         document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const email = document.getElementById('loginEmail').value;
-            if (!supabase) {
-                showMessage('인증 서비스가 초기화되지 않았습니다.', 'error');
-                return;
-            }
+            const password = document.getElementById('loginPassword').value;
 
             try {
-                // 매직링크 로그인
-                const { data, error } = await supabase.auth.signInWithOtp({
-                    email: email,
-                    options: {
-                        shouldCreateUser: false
-                    }
+                // 커스텀 인증 API 호출
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        password: password
+                    })
                 });
 
-                if (error) {
-                    console.error('로그인 오류:', error);
-                    if (error.message.includes('User not found')) {
-                        showMessage('등록되지 않은 이메일입니다. 회원가입을 진행해주세요.', 'warning');
-                    } else {
-                        showMessage(error.message || '로그인에 실패했습니다.', 'error');
-                    }
+                const result = await response.json();
+
+                if (result.success) {
+                    // 로그인 성공 - 사용자 정보를 localStorage에 저장
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
+                    showMessage('로그인 성공! 메인 페이지로 이동합니다.', 'success');
+                    setTimeout(() => {
+                        window.location.replace('index.html');
+                    }, 1500);
                 } else {
-                    showMessage('로그인 링크를 이메일로 발송했습니다. 이메일을 확인해주세요.', 'success');
+                    showMessage(result.message, 'error');
                 }
             } catch (error) {
                 console.error('로그인 오류:', error);
@@ -272,71 +230,21 @@
             }
         });
 
-        // 회원가입 폼 처리
-        document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-
-            if (!supabase) {
-                showMessage('인증 서비스가 초기화되지 않았습니다.', 'error');
-                return;
-            }
-
-            try {
-                // Supabase에 사용자 등록
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2), // 임시 비밀번호
-                    options: {
-                        data: {
-                            name: name
-                        }
-                    }
-                });
-
-                if (error) {
-                    console.error('가입 오류:', error);
-                    if (error.message.includes('already registered')) {
-                        showMessage('이미 등록된 이메일입니다. 로그인을 시도해보세요.', 'warning');
-                    } else {
-                        showMessage(error.message || '가입 신청에 실패했습니다.', 'error');
-                    }
-                } else {
-                    showMessage('가입 신청이 완료되었습니다! 이메일을 확인하여 가입을 완료해주세요.', 'success');
-                    document.getElementById('registerFormElement').reset();
-                }
-            } catch (error) {
-                console.error('가입 오류:', error);
-                showMessage('가입 신청 중 오류가 발생했습니다.', 'error');
-            }
-        });
-
         // 페이지 로드시 로그인 상태 확인
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!supabase) return;
-
             try {
-                // Supabase 인증 상태 확인
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (session && session.user) {
+                // localStorage에서 사용자 정보 확인
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    console.log('✅ User already logged in:', user);
                     // 이미 로그인되어 있으면 메인 페이지로 리다이렉트
-                    localStorage.setItem('user', JSON.stringify(session.user));
-                    window.location.href = 'index.html';
-                }
-
-                // URL에서 토큰 확인 (매직링크 로그인)
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('access_token')) {
-                    showMessage('로그인 성공! 잠시 후 메인 페이지로 이동합니다...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 2000);
+                    window.location.replace('index.html');
                 }
             } catch (error) {
                 console.error('인증 상태 확인 오류:', error);
+                // localStorage 데이터가 손상된 경우 제거
+                localStorage.removeItem('user');
             }
         });
     </script>

@@ -8,6 +8,7 @@
     <!-- PWA 메타 태그 -->
     <meta name="description" content="효율적인 업무 관리를 위한 웹 애플리케이션">
     <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TaskFlow">
@@ -986,114 +987,61 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // 직접 Supabase 클라이언트 생성
-        const supabaseUrl = 'https://dutnzopvpvyzbkrfoxqs.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dG56b3B2cHZ5emJrcmZveHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTI5MDYsImV4cCI6MjA3NDcyODkwNn0.JcyT3i8o6-DqtJRD9opnwJZk2_xhu7BITVEoPQtikCU';
-
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
         // 페이지 로드시 인증 상태 확인
         document.addEventListener('DOMContentLoaded', async () => {
-            // 리다이렉션 루프 방지
-            if (sessionStorage.getItem('auth_checking') === 'true') {
-                sessionStorage.removeItem('auth_checking');
-                return;
-            }
-
-            sessionStorage.setItem('auth_checking', 'true');
-
             try {
-                // URL에서 매직링크 토큰 확인
-                const urlParams = new URLSearchParams(window.location.search);
-                const accessToken = urlParams.get('access_token');
-                const refreshToken = urlParams.get('refresh_token');
+                // localStorage에서 사용자 정보 확인
+                const userStr = localStorage.getItem('user');
+                console.log('🔍 Checking user authentication:', userStr);
 
-                if (accessToken && refreshToken) {
-                    console.log('Magic link tokens found, setting session...');
-                    // 매직링크로 인증된 경우 세션 설정
-                    const { data, error } = await supabase.auth.setSession({
-                        access_token: accessToken,
-                        refresh_token: refreshToken
-                    });
-
-                    if (error) {
-                        console.error('Session setup error:', error);
-                    } else {
-                        console.log('Session set successfully');
-                        // URL에서 토큰 제거
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                }
-
-                // 현재 인증 상태 확인
-                const { data: { session } } = await supabase.auth.getSession();
-                console.log('Current session:', session);
-
-                if (!session || !session.user) {
-                    console.log('No valid session, redirecting to login...');
-                    // 잠시 기다린 후 리다이렉트
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1000);
+                if (!userStr) {
+                    console.log('❌ No user found, redirecting to login...');
+                    window.location.replace('login.html');
                     return;
                 }
 
-                // 인증된 경우 사용자 정보 표시
-                console.log('User authenticated:', session.user.email);
+                const user = JSON.parse(userStr);
+                console.log('✅ User authenticated:', user);
+
+                // 사용자 정보 표시
                 const userInfo = document.getElementById('userInfo');
                 const username = document.getElementById('username');
 
                 if (userInfo && username) {
-                    username.textContent = session.user.email || 'User';
+                    username.textContent = user.name || user.email || 'User';
                     userInfo.style.display = 'block';
                 }
 
+                // 로그아웃 버튼 이벤트 리스너
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        localStorage.removeItem('user');
+                        window.location.replace('login.html');
+                    });
+                }
+
             } catch (error) {
-                console.error('Auth check error:', error);
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1000);
-            } finally {
-                sessionStorage.removeItem('auth_checking');
+                console.error('❌ Auth check error:', error);
+                // localStorage 데이터가 손상된 경우 제거
+                localStorage.removeItem('user');
+                window.location.replace('login.html');
             }
         });
     </script>
     <script src="app.js"></script>
 
-    <!-- Service Worker 등록 -->
+    <!-- Service Worker 등록 - 임시 비활성화 -->
     <script>
+        // Service Worker 임시 비활성화
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('✅ Service Worker registered:', registration);
-
-                        // 업데이트 확인
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // 새 버전 사용 가능 알림
-                                    console.log('🔄 New version available');
-                                    if (confirm('새로운 버전이 있습니다. 업데이트하시겠습니까?')) {
-                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch(error => {
-                        console.error('❌ Service Worker registration failed:', error);
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister().then(() => {
+                        console.log('✅ Service Worker unregistered');
                     });
-
-                // 서비스 워커 제어 변경 감지
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    console.log('🔄 Service Worker controller changed');
-                    window.location.reload();
-                });
+                }
             });
         }
     </script>
