@@ -3054,10 +3054,47 @@ class NotionTaskManager {
         this.showJournalForm();
     }
 
-    editTodo(todoId) {
-        // For now, show a simple prompt for editing
-        // This could be expanded to a full modal later
-        this.showNotification('할일 수정 기능은 곧 추가될 예정입니다.', 'info');
+    async editTodo(todoId) {
+        try {
+            // Fetch the TODO item details
+            const response = await this.makeNotionRequest('GET', `/v1/pages/${todoId}`);
+            const properties = response.properties;
+
+            const title = this.getTodoTitle(response);
+            const priority = properties['우선순위']?.select?.name || '보통';
+            const dueDate = properties['마감일']?.date?.start || '';
+            const memo = properties['메모']?.rich_text?.[0]?.plain_text || '';
+
+            // Show edit modal using prompt (simple implementation)
+            const newTitle = prompt('할일 제목:', title);
+            if (!newTitle || newTitle === title) {
+                // User cancelled or no change
+                return;
+            }
+
+            // Update the TODO item
+            const updateProperties = {
+                '할일': {
+                    'title': [
+                        {
+                            'text': {
+                                'content': newTitle
+                            }
+                        }
+                    ]
+                }
+            };
+
+            await this.makeNotionRequest('PATCH', `/v1/pages/${todoId}`, {
+                properties: updateProperties
+            });
+
+            this.showNotification('할일이 수정되었습니다.', 'success');
+            this.loadTodos();
+        } catch (error) {
+            console.error('Error editing todo:', error);
+            this.showNotification('할일 수정에 실패했습니다.', 'error');
+        }
     }
 
     // Records Methods
