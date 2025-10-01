@@ -716,9 +716,10 @@ class NotionTaskManager {
             };
         }
 
-        // 마감일 속성 추가
+        // 마감일 속성 추가 - 카테고리에 따라 다른 속성 이름 사용
         if (dueDate) {
-            properties['마감일'] = {
+            const dueDatePropertyName = (category === 'other') ? '마감기한' : '마감일';
+            properties[dueDatePropertyName] = {
                 'date': {
                     'start': dueDate
                 }
