@@ -716,8 +716,8 @@ class NotionTaskManager {
             };
         }
 
-        // "기타"(other) 카테고리를 제외하고 마감일 속성 추가
-        if (dueDate && category !== 'other') {
+        // 마감일 속성 추가
+        if (dueDate) {
             properties['마감일'] = {
                 'date': {
                     'start': dueDate
