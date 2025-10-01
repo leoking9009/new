@@ -3090,10 +3090,13 @@ class NotionTaskManager {
             });
 
             this.showNotification('할일이 수정되었습니다.', 'success');
-            this.loadTodos();
+
+            // Reload todos
+            this.loadTodoList();
+            this.loadAllTasksForDashboard();
         } catch (error) {
             console.error('Error editing todo:', error);
-            this.showNotification('할일 수정에 실패했습니다.', 'error');
+            this.showNotification('할일 수정에 실패했습니다: ' + (error.message || '알 수 없는 오류'), 'error');
         }
     }
 
