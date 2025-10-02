@@ -3974,7 +3974,20 @@ class NotionTaskManager {
         try {
             // Fetch task details
             const response = await this.makeNotionRequest('GET', `/v1/pages/${taskId}`, null);
-            this.openTaskModal(database, response);
+            const properties = response.properties;
+
+            const taskData = {
+                id: taskId,
+                title: this.getPropertyValue(properties, '과제명') || this.getPropertyValue(properties, 'Name'),
+                assignee: this.getPropertyValue(properties, '담당자') || this.getPropertyValue(properties, 'Assignee'),
+                dueDate: this.getPropertyValue(properties, '마감일') || this.getPropertyValue(properties, '마감기한') || this.getPropertyValue(properties, 'Due Date'),
+                status: (this.getPropertyValue(properties, '완료') === true) ? '완료' : '미완료',
+                priority: (this.getPropertyValue(properties, '긴급') === true) ? '긴급' : '일반',
+                submitTo: this.getPropertyValue(properties, '제출처') || this.getPropertyValue(properties, 'Submit To'),
+                description: this.getPropertyValue(properties, '비고') || this.getPropertyValue(properties, 'Description')
+            };
+
+            this.openTaskModal(database, taskData);
         } catch (error) {
             console.error('과제 정보 로드 오류:', error);
             this.showNotification('과제 정보를 불러오는데 실패했습니다.', 'error');
