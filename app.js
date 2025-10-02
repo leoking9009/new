@@ -1071,7 +1071,9 @@ class NotionTaskManager {
                 if (dueDate) {
                     if (dueDate.getTime() === today.getTime()) {
                         stats.dueToday++;
-                    } else if (dueDate <= nextWeek) {
+                    }
+
+                    if (dueDate <= nextWeek && dueDate >= today) {
                         stats.dueWeek++;
                     }
 
@@ -1677,9 +1679,13 @@ class NotionTaskManager {
                 if (dueDate) {
                     if (dueDate.getTime() === today.getTime()) {
                         stats.dueToday++;
-                    } else if (dueDate <= nextWeek && dueDate >= today) {
+                    }
+
+                    if (dueDate <= nextWeek && dueDate >= today) {
                         stats.dueWeek++;
-                    } else if (dueDate < today && !isCompleted) {
+                    }
+
+                    if (dueDate < today && !isCompleted) {
                         stats.overdue++;
                     }
                 }
@@ -1914,9 +1920,13 @@ class NotionTaskManager {
                 if (dueDate) {
                     if (dueDate.getTime() === today.getTime()) {
                         stats.dueToday++;
-                    } else if (dueDate <= nextWeek && dueDate >= today) {
+                    }
+
+                    if (dueDate <= nextWeek && dueDate >= today) {
                         stats.dueWeek++;
-                    } else if (dueDate < today && !isCompleted) {
+                    }
+
+                    if (dueDate < today && !isCompleted) {
                         stats.overdue++;
                     }
                 }
@@ -2388,9 +2398,13 @@ class NotionTaskManager {
             if (dueDate) {
                 if (dueDate.getTime() === today.getTime()) {
                     stats.dueToday++;
-                } else if (dueDate <= nextWeek && dueDate >= today) {
+                }
+
+                if (dueDate <= nextWeek && dueDate >= today) {
                     stats.dueWeek++;
-                } else if (dueDate < today && !isCompleted) {
+                }
+
+                if (dueDate < today && !isCompleted) {
                     stats.overdue++;
                 }
             }
