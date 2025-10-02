@@ -3897,7 +3897,10 @@ class NotionTaskManager {
                     dayHTML += '<div class="day-tasks">';
                     tasksForDay.forEach(task => {
                         const taskClass = task.database === 'main' ? 'task-main' : 'task-other';
-                        const title = task.properties['과제명']?.title?.[0]?.plain_text || '제목 없음';
+                        const title = this.getPropertyValue(task.properties, '과제명') ||
+                                     this.getPropertyValue(task.properties, 'Name') ||
+                                     this.getPropertyValue(task.properties, '이름') ||
+                                     this.getPropertyValue(task.properties, 'Title') || '제목 없음';
                         const taskTitle = title.length > 15 ? title.substring(0, 15) + '...' : title;
                         dayHTML += `<div class="day-task ${taskClass}" title="${title}">${taskTitle}</div>`;
                     });
