@@ -630,7 +630,7 @@ class NotionTaskManager {
         return date.toLocaleDateString('ko-KR');
     }
 
-    openTaskModal(tabName, taskData = null) {
+    openTaskModal(tabName, taskData = null, prefilledDate = null) {
         const modal = document.getElementById('taskModal');
         const modalTitle = document.getElementById('modalTitle');
         const form = document.getElementById('taskForm');
@@ -673,6 +673,11 @@ class NotionTaskManager {
             form.reset();
             // Set default category based on current tab
             document.getElementById('taskCategory').value = tabName;
+
+            // Set prefilled date if provided
+            if (prefilledDate) {
+                document.getElementById('taskDueDate').value = prefilledDate;
+            }
         }
 
         modal.style.display = 'block';
@@ -3883,6 +3888,12 @@ class NotionTaskManager {
                 const currentDate = new Date(this.currentYear, this.currentMonth, day);
                 const today = new Date();
 
+                // Add date data attribute
+                const year = currentDate.getFullYear();
+                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                dayDiv.dataset.date = `${year}-${month}-${dayStr}`;
+
                 // Check if today
                 if (currentDate.toDateString() === today.toDateString()) {
                     dayDiv.classList.add('today');
@@ -3902,7 +3913,7 @@ class NotionTaskManager {
                                      this.getPropertyValue(task.properties, '이름') ||
                                      this.getPropertyValue(task.properties, 'Title') || '제목 없음';
                         const taskTitle = title.length > 15 ? title.substring(0, 15) + '...' : title;
-                        dayHTML += `<div class="day-task ${taskClass}" title="${title}">${taskTitle}</div>`;
+                        dayHTML += `<div class="day-task ${taskClass}" data-task-id="${task.id}" data-database="${task.database}" title="${title}">${taskTitle}</div>`;
                     });
                     dayHTML += '</div>';
                 }
@@ -3927,6 +3938,56 @@ class NotionTaskManager {
         } finally {
             if (calendarLoading) calendarLoading.style.display = 'none';
         }
+
+        // Add click event listeners
+        this.setupCalendarEventListeners();
+    }
+
+    setupCalendarEventListeners() {
+        const calendarDays = document.getElementById('calendarDays');
+        if (!calendarDays) return;
+
+        // Event delegation for calendar clicks
+        calendarDays.addEventListener('click', (e) => {
+            // Check if clicked on a task
+            const taskElement = e.target.closest('.day-task');
+            if (taskElement) {
+                e.stopPropagation();
+                const taskId = taskElement.dataset.taskId;
+                const database = taskElement.dataset.database;
+                this.openTaskFromCalendar(taskId, database);
+                return;
+            }
+
+            // Check if clicked on a calendar day
+            const dayElement = e.target.closest('.calendar-day');
+            if (dayElement && !dayElement.classList.contains('other-month')) {
+                const date = dayElement.dataset.date;
+                if (date) {
+                    this.openNewTaskWithDate(date);
+                }
+            }
+        });
+    }
+
+    async openTaskFromCalendar(taskId, database) {
+        try {
+            // Fetch task details
+            const response = await this.makeNotionRequest('GET', `/v1/pages/${taskId}`, null);
+            this.openTaskModal(database, response);
+        } catch (error) {
+            console.error('과제 정보 로드 오류:', error);
+            this.showNotification('과제 정보를 불러오는데 실패했습니다.', 'error');
+        }
+    }
+
+    openNewTaskWithDate(date) {
+        // Show a simple prompt to choose between main or other
+        const choice = confirm('주요업무로 등록하시겠습니까?\n\n확인 = 주요업무\n취소 = 기타업무');
+        const tabName = choice ? 'main' : 'other';
+
+        // Open modal with pre-filled due date
+        this.openTaskModal(tabName, null, date);
     }
 
     getTasksForDate(tasks, date) {

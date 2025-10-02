@@ -2775,6 +2775,13 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.day-task:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .day-task.task-main {
@@ -2782,9 +2789,17 @@ body {
     color: var(--color-text-inverse);
 }
 
+.day-task.task-main:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
 .day-task.task-other {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: var(--color-text-inverse);
+}
+
+.day-task.task-other:hover {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
 }
 
 /* Dark mode transition improvements */
