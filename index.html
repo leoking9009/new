@@ -131,6 +131,10 @@
                                     <i class="fas fa-list-check"></i>
                                     <span>기타업무</span>
                                 </button>
+                                <button class="tab-button" data-tab="calendar">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>업무달력</span>
+                                </button>
                                 <button class="tab-button" data-tab="todo">
                                     <i class="fas fa-check-square"></i>
                                     <span>TODO</span>
@@ -282,6 +286,42 @@
                                 <tbody id="otherTasksTableBody">
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Tab Panel -->
+                    <div class="tab-panel" id="calendar">
+                        <div class="loading-container" id="calendarLoading">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>달력을 불러오는 중...</span>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Header -->
+                        <div class="calendar-header">
+                            <button class="btn-icon" id="prevMonthBtn">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h2 class="calendar-title" id="calendarTitle"></h2>
+                            <button class="btn-icon" id="nextMonthBtn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <button class="btn" id="todayBtn">오늘</button>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="calendar-container">
+                            <div class="calendar-weekdays">
+                                <div class="calendar-weekday">일</div>
+                                <div class="calendar-weekday">월</div>
+                                <div class="calendar-weekday">화</div>
+                                <div class="calendar-weekday">수</div>
+                                <div class="calendar-weekday">목</div>
+                                <div class="calendar-weekday">금</div>
+                                <div class="calendar-weekday">토</div>
+                            </div>
+                            <div class="calendar-days" id="calendarDays"></div>
                         </div>
                     </div>
 

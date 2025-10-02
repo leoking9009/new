@@ -14,6 +14,11 @@ class NotionTaskManager {
         this.allTasks = []; // Store all tasks for dashboard filtering
         this.currentDashboardFilter = 'all';
 
+        // Calendar state
+        const today = new Date();
+        this.currentYear = today.getFullYear();
+        this.currentMonth = today.getMonth();
+
         this.checkLogin();
         this.initEventListeners();
         this.initTheme();
@@ -162,6 +167,22 @@ class NotionTaskManager {
             }
         });
 
+        // Calendar event listeners
+        document.getElementById('prevMonthBtn').addEventListener('click', () => {
+            this.changeMonth(-1);
+        });
+
+        document.getElementById('nextMonthBtn').addEventListener('click', () => {
+            this.changeMonth(1);
+        });
+
+        document.getElementById('todayBtn').addEventListener('click', () => {
+            const today = new Date();
+            this.currentYear = today.getFullYear();
+            this.currentMonth = today.getMonth();
+            this.renderCalendar();
+        });
+
         // Dashboard stat cards
         document.querySelectorAll('.stat-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -244,6 +265,10 @@ class NotionTaskManager {
             console.log(`📋 Loading ${tabName} tasks`);
             if (tabContent) tabContent.style.display = 'block';
             this.loadTasks(tabName);
+        } else if (tabName === 'calendar') {
+            console.log('📅 Loading calendar tab');
+            if (tabContent) tabContent.style.display = 'block';
+            this.renderCalendar();
         } else if (tabName === 'journal') {
             console.log('📖 Loading journal tab');
             if (tabContent) tabContent.style.display = 'block';
@@ -1020,7 +1045,13 @@ class NotionTaskManager {
                 console.log(`❌ No tasks returned from ${tabName} database`);
             }
 
-            return response.results || [];
+            // Add database info to each task for calendar
+            const tasks = (response.results || []).map(task => ({
+                ...task,
+                database: tabName
+            }));
+
+            return tasks;
         } catch (error) {
             console.error(`❌ Error fetching tasks from ${tabName}:`, error);
             return [];
@@ -3800,6 +3831,123 @@ class NotionTaskManager {
                 this.logout();
             });
         }
+    }
+
+    // Calendar methods
+    async renderCalendar() {
+        const calendarLoading = document.getElementById('calendarLoading');
+        const calendarTitle = document.getElementById('calendarTitle');
+        const calendarDays = document.getElementById('calendarDays');
+
+        if (calendarLoading) calendarLoading.style.display = 'flex';
+
+        try {
+            // Load tasks from main and other databases
+            const [mainTasks, otherTasks] = await Promise.all([
+                this.fetchTasks('main'),
+                this.fetchTasks('other')
+            ]);
+
+            // Combine tasks
+            const allTasks = [...mainTasks, ...otherTasks];
+
+            // Set calendar title
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            calendarTitle.textContent = `${this.currentYear}년 ${monthNames[this.currentMonth]}`;
+
+            // Calculate calendar days
+            const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+            const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+            const prevLastDay = new Date(this.currentYear, this.currentMonth, 0);
+
+            const firstDayIndex = firstDay.getDay();
+            const lastDayDate = lastDay.getDate();
+            const prevLastDayDate = prevLastDay.getDate();
+
+            // Clear calendar
+            calendarDays.innerHTML = '';
+
+            // Previous month days
+            for (let i = firstDayIndex; i > 0; i--) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day other-month';
+                dayDiv.innerHTML = `<div class="day-number">${prevLastDayDate - i + 1}</div>`;
+                calendarDays.appendChild(dayDiv);
+            }
+
+            // Current month days
+            for (let day = 1; day <= lastDayDate; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day';
+
+                const currentDate = new Date(this.currentYear, this.currentMonth, day);
+                const today = new Date();
+
+                // Check if today
+                if (currentDate.toDateString() === today.toDateString()) {
+                    dayDiv.classList.add('today');
+                }
+
+                // Get tasks for this date
+                const tasksForDay = this.getTasksForDate(allTasks, currentDate);
+
+                let dayHTML = `<div class="day-number">${day}</div>`;
+
+                if (tasksForDay.length > 0) {
+                    dayHTML += '<div class="day-tasks">';
+                    tasksForDay.forEach(task => {
+                        const taskClass = task.database === 'main' ? 'task-main' : 'task-other';
+                        const title = task.properties['과제명']?.title?.[0]?.text?.content || '제목 없음';
+                        const taskTitle = title.length > 15 ? title.substring(0, 15) + '...' : title;
+                        dayHTML += `<div class="day-task ${taskClass}" title="${title}">${taskTitle}</div>`;
+                    });
+                    dayHTML += '</div>';
+                }
+
+                dayDiv.innerHTML = dayHTML;
+                calendarDays.appendChild(dayDiv);
+            }
+
+            // Next month days
+            const totalCells = calendarDays.children.length;
+            const remainingCells = 42 - totalCells; // 6 rows * 7 days
+            for (let i = 1; i <= remainingCells; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day other-month';
+                dayDiv.innerHTML = `<div class="day-number">${i}</div>`;
+                calendarDays.appendChild(dayDiv);
+            }
+
+        } catch (error) {
+            console.error('달력 로드 오류:', error);
+            this.showNotification('달력을 불러오는데 실패했습니다.', 'error');
+        } finally {
+            if (calendarLoading) calendarLoading.style.display = 'none';
+        }
+    }
+
+    getTasksForDate(tasks, date) {
+        const dateStr = date.toISOString().split('T')[0];
+        return tasks.filter(task => {
+            const dueDate = this.getPropertyValue(task.properties, '마감일');
+            if (!dueDate) return false;
+            const taskDate = dueDate.split('T')[0];
+            return taskDate === dateStr;
+        });
+    }
+
+    changeMonth(offset) {
+        this.currentMonth += offset;
+
+        if (this.currentMonth > 11) {
+            this.currentMonth = 0;
+            this.currentYear++;
+        } else if (this.currentMonth < 0) {
+            this.currentMonth = 11;
+            this.currentYear--;
+        }
+
+        this.renderCalendar();
     }
 
     async logout() {
