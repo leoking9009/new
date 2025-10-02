@@ -3927,11 +3927,18 @@ class NotionTaskManager {
     }
 
     getTasksForDate(tasks, date) {
-        const dateStr = date.toISOString().split('T')[0];
+        // Use local date string to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
         return tasks.filter(task => {
-            const dueDate = this.getPropertyValue(task.properties, '마감일');
-            if (!dueDate) return false;
-            const taskDate = dueDate.split('T')[0];
+            // Get date property directly to avoid format conversion
+            const dateProp = task.properties['마감일'] || task.properties['마감기한'] || task.properties['Due Date'];
+            if (!dateProp || dateProp.type !== 'date' || !dateProp.date?.start) return false;
+
+            const taskDate = dateProp.date.start.split('T')[0];
             return taskDate === dateStr;
         });
     }
