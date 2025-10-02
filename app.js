@@ -459,8 +459,8 @@ class NotionTaskManager {
             <div class="task-details">
                 ${assignee ? `<div class="task-detail-item"><i class="fas fa-user"></i> <strong>담당자:</strong> ${assignee}</div>` : ''}
                 ${submitTo ? `<div class="task-detail-item"><i class="fas fa-building"></i> <strong>제출처:</strong> ${submitTo}</div>` : ''}
+                ${dueDate ? `<div class="task-detail-item"><i class="fas fa-calendar"></i> <strong>마감일:</strong> ${dueDate}</div>` : ''}
                 ${createdDate ? `<div class="task-detail-item"><i class="fas fa-plus-circle"></i> <strong>생성일:</strong> ${createdDate}</div>` : ''}
-                ${modifiedDate ? `<div class="task-detail-item"><i class="fas fa-edit"></i> <strong>수정일:</strong> ${modifiedDate}</div>` : ''}
             </div>
 
             ${description ? `<div class="task-description">${description}</div>` : ''}
@@ -1280,8 +1280,8 @@ class NotionTaskManager {
             <div class="task-details">
                 ${assignee ? `<div class="task-detail-item"><i class="fas fa-user"></i> <strong>담당자:</strong> ${assignee}</div>` : ''}
                 ${submitTo ? `<div class="task-detail-item"><i class="fas fa-building"></i> <strong>제출처:</strong> ${submitTo}</div>` : ''}
+                ${dueDate ? `<div class="task-detail-item"><i class="fas fa-calendar"></i> <strong>마감일:</strong> ${dueDate}</div>` : ''}
                 ${createdDate ? `<div class="task-detail-item"><i class="fas fa-plus-circle"></i> <strong>생성일:</strong> ${createdDate}</div>` : ''}
-                ${modifiedDate ? `<div class="task-detail-item"><i class="fas fa-edit"></i> <strong>수정일:</strong> ${modifiedDate}</div>` : ''}
             </div>
 
             ${description ? `<div class="task-description">${description}</div>` : ''}
