@@ -538,7 +538,7 @@ body {
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
-    overflow: hidden;
+    overflow-y: auto;
     transform: translate(-50%, -50%) scale(0.95);
     transition: transform 0.3s ease;
 }
