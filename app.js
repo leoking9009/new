@@ -2606,6 +2606,13 @@ class NotionTaskManager {
                 return;
             }
 
+            // Sort todos: uncompleted first, completed last
+            todos.sort((a, b) => {
+                const aCompleted = a.properties['완료여부']?.checkbox || false;
+                const bCompleted = b.properties['완료여부']?.checkbox || false;
+                return aCompleted - bCompleted; // false(0) comes before true(1)
+            });
+
             todos.forEach(todo => {
                 const todoItem = this.createTodoItem(todo);
                 todoList.appendChild(todoItem);
