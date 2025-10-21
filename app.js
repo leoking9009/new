@@ -1021,24 +1021,45 @@ class NotionTaskManager {
 
     async loadAllTasksForDashboard() {
         try {
-            console.log('🔄 Loading all tasks for dashboard...');
+            console.log('🔄 Loading all tasks for dashboard and search...');
 
-            // Load tasks from main and other databases only (exclude todo)
-            const [mainTasks, otherTasks] = await Promise.all([
+            // Load tasks from ALL databases for comprehensive search
+            const [mainTasks, otherTasks, todoTasks, journalTasks, recordsTasks, eventsTasks] = await Promise.all([
                 this.fetchTasks('main'),
-                this.fetchTasks('other')
+                this.fetchTasks('other'),
+                this.fetchTasks('todo'),
+                this.fetchTasks('journal'),
+                this.fetchTasks('records'),
+                this.fetchTasks('events')
             ]);
 
-            console.log(`📊 Loaded ${mainTasks.length} main tasks and ${otherTasks.length} other tasks (todo excluded from dashboard)`);
+            console.log(`📊 Loaded tasks from all databases:
+                - Main: ${mainTasks.length}
+                - Other: ${otherTasks.length}
+                - TODO: ${todoTasks.length}
+                - Journal: ${journalTasks.length}
+                - Records: ${recordsTasks.length}
+                - Events: ${eventsTasks.length}`);
 
             // Add category to tasks
-            const mainTasksWithCategory = mainTasks.map(task => ({ ...task, category: '주요' }));
-            const otherTasksWithCategory = otherTasks.map(task => ({ ...task, category: '기타' }));
+            const mainTasksWithCategory = mainTasks.map(task => ({ ...task, category: '주요', tabType: 'main' }));
+            const otherTasksWithCategory = otherTasks.map(task => ({ ...task, category: '기타', tabType: 'other' }));
+            const todoTasksWithCategory = todoTasks.map(task => ({ ...task, category: 'TODO', tabType: 'todo' }));
+            const journalTasksWithCategory = journalTasks.map(task => ({ ...task, category: '일지', tabType: 'journal' }));
+            const recordsTasksWithCategory = recordsTasks.map(task => ({ ...task, category: '기록', tabType: 'records' }));
+            const eventsTasksWithCategory = eventsTasks.map(task => ({ ...task, category: '행사', tabType: 'events' }));
 
-            // Combine tasks (excluding todo)
-            this.allTasks = [...mainTasksWithCategory, ...otherTasksWithCategory];
+            // Combine ALL tasks for comprehensive search
+            this.allTasks = [
+                ...mainTasksWithCategory,
+                ...otherTasksWithCategory,
+                ...todoTasksWithCategory,
+                ...journalTasksWithCategory,
+                ...recordsTasksWithCategory,
+                ...eventsTasksWithCategory
+            ];
 
-            console.log(`✅ Combined ${this.allTasks.length} total tasks (${mainTasksWithCategory.length} main + ${otherTasksWithCategory.length} other)`);
+            console.log(`✅ Combined ${this.allTasks.length} total tasks from all databases`);
 
             // Sort by creation date descending
             this.allTasks.sort((a, b) => {
@@ -1108,8 +1129,13 @@ class NotionTaskManager {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
+        // Filter to only include main and other tasks for dashboard stats
+        const dashboardTasks = this.allTasks.filter(task =>
+            task.category === '주요' || task.category === '기타'
+        );
+
         const stats = {
-            all: this.allTasks.length,
+            all: dashboardTasks.length,
             inProgress: 0,
             dueToday: 0,
             dueWeek: 0,
@@ -1119,7 +1145,7 @@ class NotionTaskManager {
             assignee: 0
         };
 
-        this.allTasks.forEach(task => {
+        dashboardTasks.forEach(task => {
             const properties = task.properties;
 
             // Get status and priority
@@ -1219,7 +1245,14 @@ class NotionTaskManager {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
+        // Only include main and other tasks in dashboard filtering
         return this.allTasks.filter(task => {
+            // First filter: only main and other tasks
+            if (task.category !== '주요' && task.category !== '기타') {
+                return false;
+            }
+
+            // Second filter: apply dashboard filter logic
             const properties = task.properties;
 
             const statusProp = properties['완료'] || properties['완료여부'] || properties['Status'] || properties['상태'];
@@ -4091,6 +4124,43 @@ class NotionTaskManager {
 
     // ===== Search Functionality =====
 
+    // Helper function to extract text from various Notion property types
+    extractTextFromProperty(property) {
+        if (!property) return '';
+
+        try {
+            // Title property
+            if (property.title && Array.isArray(property.title)) {
+                return property.title.map(item => item.text?.content || '').join(' ');
+            }
+
+            // Rich text property
+            if (property.rich_text && Array.isArray(property.rich_text)) {
+                return property.rich_text.map(item => item.text?.content || '').join(' ');
+            }
+
+            // Select property
+            if (property.select && property.select.name) {
+                return property.select.name;
+            }
+
+            // Multi-select property
+            if (property.multi_select && Array.isArray(property.multi_select)) {
+                return property.multi_select.map(item => item.name || '').join(' ');
+            }
+
+            // People property (담당자)
+            if (property.people && Array.isArray(property.people)) {
+                return property.people.map(person => person.name || '').join(' ');
+            }
+
+            return '';
+        } catch (error) {
+            console.error('Error extracting text from property:', error);
+            return '';
+        }
+    }
+
     async performSearch() {
         const searchInput = document.getElementById('globalSearch');
         const searchKeyword = searchInput.value.trim();
@@ -4103,18 +4173,45 @@ class NotionTaskManager {
         console.log('🔍 Searching for:', searchKeyword);
 
         try {
-            // Search in all tasks data
+            // Search in all tasks data with comprehensive field support
             const searchResults = this.allTasks.filter(task => {
-                const title = (task.title || '').toLowerCase();
-                const assignee = (task.assignee || '').toLowerCase();
-                const submitTo = (task.submitTo || '').toLowerCase();
-                const description = (task.description || '').toLowerCase();
+                const props = task.properties || {};
                 const keyword = searchKeyword.toLowerCase();
 
-                return title.includes(keyword) ||
-                       assignee.includes(keyword) ||
-                       submitTo.includes(keyword) ||
-                       description.includes(keyword);
+                // Extract text from all possible field names across different databases
+                const searchableFields = [
+                    // Main/Other fields
+                    this.extractTextFromProperty(props['과제명']),
+                    this.extractTextFromProperty(props['담당자']),
+                    this.extractTextFromProperty(props['제출처']),
+                    this.extractTextFromProperty(props['비고']),
+
+                    // TODO fields
+                    this.extractTextFromProperty(props['할일']),
+                    this.extractTextFromProperty(props['메모']),
+                    this.extractTextFromProperty(props['우선순위']),
+
+                    // Journal fields
+                    this.extractTextFromProperty(props['감정일지']),
+                    this.extractTextFromProperty(props['성장일지']),
+
+                    // Records fields
+                    this.extractTextFromProperty(props['주제']),
+                    this.extractTextFromProperty(props['핵심내용']),
+
+                    // Events fields
+                    this.extractTextFromProperty(props['행사명']),
+
+                    // Common alternative field names
+                    this.extractTextFromProperty(props['Name']),
+                    this.extractTextFromProperty(props['Title']),
+                    this.extractTextFromProperty(props['Description'])
+                ];
+
+                // Check if any field contains the keyword
+                return searchableFields.some(field =>
+                    field.toLowerCase().includes(keyword)
+                );
             });
 
             console.log(`✅ Found ${searchResults.length} results`);
