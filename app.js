@@ -4315,9 +4315,11 @@ class NotionTaskManager {
         const dueDate = props['마감일']?.date?.start || '';
         const isCompleted = props['완료']?.checkbox || false;
         const isUrgent = props['긴급']?.checkbox || false;
+        const taskId = task.id;
+        const tabType = task.tabType || 'main';
 
         return `
-            <div class="search-item-card">
+            <div class="search-item-card" onclick="taskManager.openSearchItemEdit('${taskId}', '${tabType}', 'task')">
                 <div class="search-item-title">
                     ${isUrgent ? '<i class="fas fa-fire" style="color: #ef4444; margin-right: 0.5rem;"></i>' : ''}
                     ${title}
@@ -4346,9 +4348,10 @@ class NotionTaskManager {
         const memo = this.extractTextFromProperty(props['메모']) || '';
         const dueDate = props['마감일']?.date?.start || '';
         const isCompleted = props['완료여부']?.checkbox || false;
+        const todoId = task.id;
 
         return `
-            <div class="search-item-card">
+            <div class="search-item-card" onclick="taskManager.openSearchItemEdit('${todoId}', 'todo', 'todo')">
                 <div class="search-item-title">
                     ${isCompleted ? '<i class="fas fa-check-square" style="color: #10b981; margin-right: 0.5rem;"></i>' : '<i class="far fa-square" style="margin-right: 0.5rem;"></i>'}
                     ${title}
@@ -4374,7 +4377,7 @@ class NotionTaskManager {
         const exercise = props['운동여부']?.checkbox || false;
 
         return `
-            <div class="search-item-card">
+            <div class="search-item-card" onclick="taskManager.openSearchItemEdit('${date}', 'journal', 'journal')">
                 <div class="search-item-title">
                     <i class="fas fa-book" style="margin-right: 0.5rem;"></i>
                     ${date ? `${date} 일지` : '일지'}
@@ -4395,9 +4398,10 @@ class NotionTaskManager {
         const subject = this.extractTextFromProperty(props['주제']) || '제목 없음';
         const core = this.extractTextFromProperty(props['핵심내용']) || '';
         const date = props['작성일']?.date?.start || '';
+        const recordId = task.id;
 
         return `
-            <div class="search-item-card">
+            <div class="search-item-card" onclick="taskManager.openSearchItemEdit('${recordId}', 'records', 'record')">
                 <div class="search-item-title">
                     <i class="fas fa-clipboard-list" style="margin-right: 0.5rem;"></i>
                     ${subject}
@@ -4418,7 +4422,7 @@ class NotionTaskManager {
         const date = props['행사날짜']?.date?.start || '';
 
         return `
-            <div class="search-item-card">
+            <div class="search-item-card" onclick="taskManager.openSearchItemEdit('${name}', 'events', 'event')">
                 <div class="search-item-title">
                     <i class="fas fa-calendar-check" style="margin-right: 0.5rem;"></i>
                     ${name}
@@ -4446,6 +4450,59 @@ class NotionTaskManager {
     switchSearchView(view) {
         // View toggle removed since we're using category-based view
         console.log('Category-based view - toggle not needed');
+    }
+
+    openSearchItemEdit(id, tabType, itemType) {
+        // Close search panel first
+        this.closeSearchResults();
+
+        // Handle different item types
+        switch (itemType) {
+            case 'task':
+                // Open task edit modal
+                this.editTask(id, tabType);
+                break;
+
+            case 'todo':
+                // Switch to TODO tab and edit
+                this.switchTab('todo');
+                setTimeout(() => {
+                    this.editTodo(id);
+                }, 100);
+                break;
+
+            case 'journal':
+                // Switch to journal tab and load specific date
+                this.switchTab('journal');
+                setTimeout(() => {
+                    // Set the date picker to the specific date
+                    const datePicker = document.getElementById('journalDatePicker');
+                    if (datePicker && id) {
+                        datePicker.value = id; // id is the date for journal
+                        this.loadJournalByDate(id);
+                    }
+                }, 100);
+                break;
+
+            case 'record':
+                // Switch to records tab and edit
+                this.switchTab('records');
+                setTimeout(() => {
+                    this.editRecord(id);
+                }, 100);
+                break;
+
+            case 'event':
+                // Switch to events tab and edit
+                this.switchTab('events');
+                setTimeout(() => {
+                    this.editEvent(id); // id is the event name
+                }, 100);
+                break;
+
+            default:
+                console.warn('Unknown item type:', itemType);
+        }
     }
 
     closeSearchResults() {
