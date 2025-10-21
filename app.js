@@ -2606,11 +2606,20 @@ class NotionTaskManager {
                 return;
             }
 
-            // Sort todos: uncompleted first, completed last
+            // Sort todos: uncompleted first (newest first), completed last (newest first)
             todos.sort((a, b) => {
                 const aCompleted = a.properties['완료여부']?.checkbox || false;
                 const bCompleted = b.properties['완료여부']?.checkbox || false;
-                return aCompleted - bCompleted; // false(0) comes before true(1)
+
+                // First, sort by completion status
+                if (aCompleted !== bCompleted) {
+                    return aCompleted - bCompleted; // false(0) comes before true(1)
+                }
+
+                // Within same completion status, sort by created time (newest first)
+                const aCreated = new Date(a.created_time);
+                const bCreated = new Date(b.created_time);
+                return bCreated - aCreated; // Descending order (newest first)
             });
 
             todos.forEach(todo => {
