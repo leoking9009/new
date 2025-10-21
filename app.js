@@ -229,15 +229,6 @@ class NotionTaskManager {
         document.getElementById('closeSearchBtn').addEventListener('click', () => {
             this.closeSearchResults();
         });
-
-        // Search results view toggle
-        document.getElementById('searchCardViewBtn')?.addEventListener('click', () => {
-            this.switchSearchView('card');
-        });
-
-        document.getElementById('searchTableViewBtn')?.addEventListener('click', () => {
-            this.switchSearchView('table');
-        });
     }
 
     initTheme() {
@@ -4227,8 +4218,7 @@ class NotionTaskManager {
         const panel = document.getElementById('searchResultsPanel');
         const keywordEl = document.getElementById('searchKeyword');
         const countEl = document.getElementById('searchCount');
-        const cardsContainer = document.getElementById('searchResultsCards');
-        const tableBody = document.getElementById('searchResultsTableBody');
+        const container = document.getElementById('searchResultsByCategory');
         const emptyState = document.getElementById('searchResultsEmpty');
 
         // Update header
@@ -4240,43 +4230,222 @@ class NotionTaskManager {
 
         if (results.length === 0) {
             emptyState.style.display = 'flex';
-            cardsContainer.style.display = 'none';
-            document.getElementById('searchResultsTable').style.display = 'none';
+            container.style.display = 'none';
             return;
         }
 
         emptyState.style.display = 'none';
+        container.style.display = 'block';
 
-        // Render card view
-        cardsContainer.innerHTML = results.map(task => this.createTaskCard(task)).join('');
+        // Group results by category
+        const groupedResults = {
+            '주요': [],
+            '기타': [],
+            'TODO': [],
+            '일지': [],
+            '기록': [],
+            '행사': []
+        };
 
-        // Render table view
-        tableBody.innerHTML = results.map(task => this.createTaskTableRow(task)).join('');
+        results.forEach(task => {
+            const category = task.category || '기타';
+            if (groupedResults[category]) {
+                groupedResults[category].push(task);
+            }
+        });
 
-        // Show default view (card)
-        cardsContainer.style.display = 'grid';
-        document.getElementById('searchResultsTable').style.display = 'none';
-        document.getElementById('searchCardViewBtn').classList.add('active');
-        document.getElementById('searchTableViewBtn').classList.remove('active');
+        // Render category sections
+        let html = '';
+        const categoryConfig = {
+            '주요': { icon: 'fa-star', name: '주요업무' },
+            '기타': { icon: 'fa-list-check', name: '기타업무' },
+            'TODO': { icon: 'fa-check-square', name: 'TODO' },
+            '일지': { icon: 'fa-book', name: '일지' },
+            '기록': { icon: 'fa-clipboard-list', name: '기록' },
+            '행사': { icon: 'fa-calendar-check', name: '행사' }
+        };
+
+        Object.entries(groupedResults).forEach(([category, items]) => {
+            if (items.length === 0) return;
+
+            const config = categoryConfig[category];
+            html += `
+                <div class="search-category-section">
+                    <div class="search-category-header">
+                        <i class="fas ${config.icon} search-category-icon"></i>
+                        <h4>${config.name}</h4>
+                        <span class="search-category-count">${items.length}</span>
+                    </div>
+                    <div class="search-category-items">
+                        ${items.map(item => this.renderSearchItem(item, category)).join('')}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    renderSearchItem(task, category) {
+        const props = task.properties || {};
+
+        switch (category) {
+            case '주요':
+            case '기타':
+                return this.renderTaskSearchItem(task);
+            case 'TODO':
+                return this.renderTodoSearchItem(task);
+            case '일지':
+                return this.renderJournalSearchItem(task);
+            case '기록':
+                return this.renderRecordSearchItem(task);
+            case '행사':
+                return this.renderEventSearchItem(task);
+            default:
+                return this.renderGenericSearchItem(task);
+        }
+    }
+
+    renderTaskSearchItem(task) {
+        const props = task.properties;
+        const title = this.extractTextFromProperty(props['과제명']) || '제목 없음';
+        const assignee = this.extractTextFromProperty(props['담당자']) || '미지정';
+        const submitTo = this.extractTextFromProperty(props['제출처']) || '-';
+        const description = this.extractTextFromProperty(props['비고']) || '';
+        const dueDate = props['마감일']?.date?.start || '';
+        const isCompleted = props['완료']?.checkbox || false;
+        const isUrgent = props['긴급']?.checkbox || false;
+
+        return `
+            <div class="search-item-card">
+                <div class="search-item-title">
+                    ${isUrgent ? '<i class="fas fa-fire" style="color: #ef4444; margin-right: 0.5rem;"></i>' : ''}
+                    ${title}
+                    ${isCompleted ? '<i class="fas fa-check-circle" style="color: #10b981; margin-left: 0.5rem;"></i>' : ''}
+                </div>
+                <div class="search-item-meta">
+                    <span class="search-item-meta-item">
+                        <i class="fas fa-user"></i> ${assignee}
+                    </span>
+                    ${dueDate ? `<span class="search-item-meta-item">
+                        <i class="fas fa-calendar"></i> ${dueDate}
+                    </span>` : ''}
+                    ${submitTo !== '-' ? `<span class="search-item-meta-item">
+                        <i class="fas fa-building"></i> ${submitTo}
+                    </span>` : ''}
+                </div>
+                ${description ? `<div class="search-item-content">${description}</div>` : ''}
+            </div>
+        `;
+    }
+
+    renderTodoSearchItem(task) {
+        const props = task.properties;
+        const title = this.extractTextFromProperty(props['할일']) || '제목 없음';
+        const priority = this.extractTextFromProperty(props['우선순위']) || '보통';
+        const memo = this.extractTextFromProperty(props['메모']) || '';
+        const dueDate = props['마감일']?.date?.start || '';
+        const isCompleted = props['완료여부']?.checkbox || false;
+
+        return `
+            <div class="search-item-card">
+                <div class="search-item-title">
+                    ${isCompleted ? '<i class="fas fa-check-square" style="color: #10b981; margin-right: 0.5rem;"></i>' : '<i class="far fa-square" style="margin-right: 0.5rem;"></i>'}
+                    ${title}
+                </div>
+                <div class="search-item-meta">
+                    <span class="search-item-meta-item">
+                        <i class="fas fa-flag"></i> ${priority}
+                    </span>
+                    ${dueDate ? `<span class="search-item-meta-item">
+                        <i class="fas fa-calendar"></i> ${dueDate}
+                    </span>` : ''}
+                </div>
+                ${memo ? `<div class="search-item-content">${memo}</div>` : ''}
+            </div>
+        `;
+    }
+
+    renderJournalSearchItem(task) {
+        const props = task.properties;
+        const date = props['날짜']?.date?.start || '';
+        const emotion = this.extractTextFromProperty(props['감정일지']) || '';
+        const growth = this.extractTextFromProperty(props['성장일지']) || '';
+        const exercise = props['운동여부']?.checkbox || false;
+
+        return `
+            <div class="search-item-card">
+                <div class="search-item-title">
+                    <i class="fas fa-book" style="margin-right: 0.5rem;"></i>
+                    ${date ? `${date} 일지` : '일지'}
+                </div>
+                <div class="search-item-meta">
+                    ${exercise ? `<span class="search-item-meta-item">
+                        <i class="fas fa-bicycle"></i> 운동 완료
+                    </span>` : ''}
+                </div>
+                ${emotion ? `<div class="search-item-content"><strong>감정:</strong> ${emotion}</div>` : ''}
+                ${growth ? `<div class="search-item-content"><strong>성장:</strong> ${growth}</div>` : ''}
+            </div>
+        `;
+    }
+
+    renderRecordSearchItem(task) {
+        const props = task.properties;
+        const subject = this.extractTextFromProperty(props['주제']) || '제목 없음';
+        const core = this.extractTextFromProperty(props['핵심내용']) || '';
+        const date = props['작성일']?.date?.start || '';
+
+        return `
+            <div class="search-item-card">
+                <div class="search-item-title">
+                    <i class="fas fa-clipboard-list" style="margin-right: 0.5rem;"></i>
+                    ${subject}
+                </div>
+                <div class="search-item-meta">
+                    ${date ? `<span class="search-item-meta-item">
+                        <i class="fas fa-calendar"></i> ${date}
+                    </span>` : ''}
+                </div>
+                ${core ? `<div class="search-item-content">${core}</div>` : ''}
+            </div>
+        `;
+    }
+
+    renderEventSearchItem(task) {
+        const props = task.properties;
+        const name = this.extractTextFromProperty(props['행사명']) || '제목 없음';
+        const date = props['행사날짜']?.date?.start || '';
+
+        return `
+            <div class="search-item-card">
+                <div class="search-item-title">
+                    <i class="fas fa-calendar-check" style="margin-right: 0.5rem;"></i>
+                    ${name}
+                </div>
+                <div class="search-item-meta">
+                    ${date ? `<span class="search-item-meta-item">
+                        <i class="fas fa-calendar"></i> ${date}
+                    </span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    renderGenericSearchItem(task) {
+        const props = task.properties;
+        const title = this.extractTextFromProperty(props['Name'] || props['Title']) || '제목 없음';
+
+        return `
+            <div class="search-item-card">
+                <div class="search-item-title">${title}</div>
+            </div>
+        `;
     }
 
     switchSearchView(view) {
-        const cardsContainer = document.getElementById('searchResultsCards');
-        const tableContainer = document.getElementById('searchResultsTable');
-        const cardBtn = document.getElementById('searchCardViewBtn');
-        const tableBtn = document.getElementById('searchTableViewBtn');
-
-        if (view === 'card') {
-            cardsContainer.style.display = 'grid';
-            tableContainer.style.display = 'none';
-            cardBtn.classList.add('active');
-            tableBtn.classList.remove('active');
-        } else {
-            cardsContainer.style.display = 'none';
-            tableContainer.style.display = 'block';
-            cardBtn.classList.remove('active');
-            tableBtn.classList.add('active');
-        }
+        // View toggle removed since we're using category-based view
+        console.log('Category-based view - toggle not needed');
     }
 
     closeSearchResults() {

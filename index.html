@@ -941,14 +941,6 @@
                         <span class="search-count" id="searchCount">0개</span>
                     </div>
                     <div class="search-results-actions">
-                        <div class="view-toggle">
-                            <button class="btn btn-ghost view-btn active" id="searchCardViewBtn" data-view="card">
-                                <i class="fas fa-th-large"></i>
-                            </button>
-                            <button class="btn btn-ghost view-btn" id="searchTableViewBtn" data-view="table">
-                                <i class="fas fa-list"></i>
-                            </button>
-                        </div>
                         <button class="btn btn-ghost" id="closeSearchBtn">
                             <i class="fas fa-times"></i>
                             닫기
@@ -957,31 +949,8 @@
                 </div>
 
                 <div class="search-results-content">
-                    <!-- Card View -->
-                    <div class="tasks-grid" id="searchResultsCards"></div>
-
-                    <!-- Table View -->
-                    <div class="tasks-table-container" id="searchResultsTable" style="display: none;">
-                        <table class="tasks-table">
-                            <thead>
-                                <tr>
-                                    <th>구분</th>
-                                    <th>과제명</th>
-                                    <th>담당자</th>
-                                    <th>마감일</th>
-                                    <th>완료여부</th>
-                                    <th>긴급여부</th>
-                                    <th>제출처</th>
-                                    <th>생성일</th>
-                                    <th>수정일</th>
-                                    <th>비고</th>
-                                    <th>액션</th>
-                                </tr>
-                            </thead>
-                            <tbody id="searchResultsTableBody">
-                            </tbody>
-                        </table>
-                    </div>
+                    <!-- Category-based Results -->
+                    <div id="searchResultsByCategory"></div>
 
                     <!-- Empty State -->
                     <div class="search-results-empty" id="searchResultsEmpty" style="display: none;">
