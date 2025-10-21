@@ -199,6 +199,45 @@ class NotionTaskManager {
         document.getElementById('dashboardTableViewBtn')?.addEventListener('click', () => {
             this.switchDashboardView('table');
         });
+
+        // Search functionality
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            this.performSearch();
+        });
+
+        document.getElementById('globalSearch').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.performSearch();
+            }
+        });
+
+        document.getElementById('globalSearch').addEventListener('input', (e) => {
+            const clearBtn = document.getElementById('searchClearBtn');
+            if (e.target.value.trim()) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        });
+
+        document.getElementById('searchClearBtn').addEventListener('click', () => {
+            document.getElementById('globalSearch').value = '';
+            document.getElementById('searchClearBtn').style.display = 'none';
+            this.closeSearchResults();
+        });
+
+        document.getElementById('closeSearchBtn').addEventListener('click', () => {
+            this.closeSearchResults();
+        });
+
+        // Search results view toggle
+        document.getElementById('searchCardViewBtn')?.addEventListener('click', () => {
+            this.switchSearchView('card');
+        });
+
+        document.getElementById('searchTableViewBtn')?.addEventListener('click', () => {
+            this.switchSearchView('table');
+        });
     }
 
     initTheme() {
@@ -4048,6 +4087,106 @@ class NotionTaskManager {
         }
 
         this.renderCalendar();
+    }
+
+    // ===== Search Functionality =====
+
+    async performSearch() {
+        const searchInput = document.getElementById('globalSearch');
+        const searchKeyword = searchInput.value.trim();
+
+        if (!searchKeyword) {
+            alert('검색어를 입력해주세요.');
+            return;
+        }
+
+        console.log('🔍 Searching for:', searchKeyword);
+
+        try {
+            // Search in all tasks data
+            const searchResults = this.allTasks.filter(task => {
+                const title = (task.title || '').toLowerCase();
+                const assignee = (task.assignee || '').toLowerCase();
+                const submitTo = (task.submitTo || '').toLowerCase();
+                const description = (task.description || '').toLowerCase();
+                const keyword = searchKeyword.toLowerCase();
+
+                return title.includes(keyword) ||
+                       assignee.includes(keyword) ||
+                       submitTo.includes(keyword) ||
+                       description.includes(keyword);
+            });
+
+            console.log(`✅ Found ${searchResults.length} results`);
+            this.renderSearchResults(searchResults, searchKeyword);
+
+        } catch (error) {
+            console.error('❌ Search error:', error);
+            alert('검색 중 오류가 발생했습니다.');
+        }
+    }
+
+    renderSearchResults(results, keyword) {
+        const panel = document.getElementById('searchResultsPanel');
+        const keywordEl = document.getElementById('searchKeyword');
+        const countEl = document.getElementById('searchCount');
+        const cardsContainer = document.getElementById('searchResultsCards');
+        const tableBody = document.getElementById('searchResultsTableBody');
+        const emptyState = document.getElementById('searchResultsEmpty');
+
+        // Update header
+        keywordEl.textContent = `"${keyword}"`;
+        countEl.textContent = `${results.length}개`;
+
+        // Show panel
+        panel.style.display = 'block';
+
+        if (results.length === 0) {
+            emptyState.style.display = 'flex';
+            cardsContainer.style.display = 'none';
+            document.getElementById('searchResultsTable').style.display = 'none';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+
+        // Render card view
+        cardsContainer.innerHTML = results.map(task => this.createTaskCard(task)).join('');
+
+        // Render table view
+        tableBody.innerHTML = results.map(task => this.createTaskTableRow(task)).join('');
+
+        // Show default view (card)
+        cardsContainer.style.display = 'grid';
+        document.getElementById('searchResultsTable').style.display = 'none';
+        document.getElementById('searchCardViewBtn').classList.add('active');
+        document.getElementById('searchTableViewBtn').classList.remove('active');
+    }
+
+    switchSearchView(view) {
+        const cardsContainer = document.getElementById('searchResultsCards');
+        const tableContainer = document.getElementById('searchResultsTable');
+        const cardBtn = document.getElementById('searchCardViewBtn');
+        const tableBtn = document.getElementById('searchTableViewBtn');
+
+        if (view === 'card') {
+            cardsContainer.style.display = 'grid';
+            tableContainer.style.display = 'none';
+            cardBtn.classList.add('active');
+            tableBtn.classList.remove('active');
+        } else {
+            cardsContainer.style.display = 'none';
+            tableContainer.style.display = 'block';
+            cardBtn.classList.remove('active');
+            tableBtn.classList.add('active');
+        }
+    }
+
+    closeSearchResults() {
+        const panel = document.getElementById('searchResultsPanel');
+        panel.style.display = 'none';
+        document.getElementById('globalSearch').value = '';
+        document.getElementById('searchClearBtn').style.display = 'none';
     }
 
     async logout() {

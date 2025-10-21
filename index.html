@@ -37,6 +37,18 @@
                     <i class="fas fa-tasks"></i>
                     <h1>TaskFlow</h1>
                 </div>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="globalSearch" class="search-input" placeholder="과제명, 담당자, 제출처, 비고 검색...">
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="search-clear" id="searchClearBtn" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="header-actions">
                     <div class="user-info" id="userInfo" style="display: none;">
                         <span class="username" id="username"></span>
@@ -913,6 +925,69 @@
                                 </table>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results Panel -->
+            <div class="search-results-panel" id="searchResultsPanel" style="display: none;">
+                <div class="search-results-header">
+                    <div class="search-results-title">
+                        <h3>
+                            <i class="fas fa-search"></i>
+                            검색 결과
+                        </h3>
+                        <span class="search-keyword" id="searchKeyword"></span>
+                        <span class="search-count" id="searchCount">0개</span>
+                    </div>
+                    <div class="search-results-actions">
+                        <div class="view-toggle">
+                            <button class="btn btn-ghost view-btn active" id="searchCardViewBtn" data-view="card">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button class="btn btn-ghost view-btn" id="searchTableViewBtn" data-view="table">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-ghost" id="closeSearchBtn">
+                            <i class="fas fa-times"></i>
+                            닫기
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-results-content">
+                    <!-- Card View -->
+                    <div class="tasks-grid" id="searchResultsCards"></div>
+
+                    <!-- Table View -->
+                    <div class="tasks-table-container" id="searchResultsTable" style="display: none;">
+                        <table class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>구분</th>
+                                    <th>과제명</th>
+                                    <th>담당자</th>
+                                    <th>마감일</th>
+                                    <th>완료여부</th>
+                                    <th>긴급여부</th>
+                                    <th>제출처</th>
+                                    <th>생성일</th>
+                                    <th>수정일</th>
+                                    <th>비고</th>
+                                    <th>액션</th>
+                                </tr>
+                            </thead>
+                            <tbody id="searchResultsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="search-results-empty" id="searchResultsEmpty" style="display: none;">
+                        <i class="fas fa-search"></i>
+                        <p>검색 결과가 없습니다.</p>
+                        <small>다른 검색어를 입력해보세요.</small>
                     </div>
                 </div>
             </div>
