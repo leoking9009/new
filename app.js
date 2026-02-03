@@ -1236,6 +1236,14 @@ class NotionTaskManager {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
+        // Debug: log filter type
+        if (this.currentDashboardFilter === 'in-progress') {
+            console.log(`🔍 Filtering for: ${this.currentDashboardFilter}`);
+        }
+
+        let logCount = 0;
+        const maxLogs = 5;
+
         // Only include main and other tasks in dashboard filtering
         return this.allTasks.filter(task => {
             // First filter: only main and other tasks
@@ -1257,6 +1265,19 @@ class NotionTaskManager {
             if (dueDateProp && dueDateProp.date && dueDateProp.date.start) {
                 dueDate = new Date(dueDateProp.date.start);
                 dueDate.setHours(0, 0, 0, 0);
+            }
+
+            // Debug logging for in-progress filter (only first few tasks)
+            if (this.currentDashboardFilter === 'in-progress' && logCount < maxLogs) {
+                console.log(`🔍 Task #${logCount + 1}:`, {
+                    title: this.getPropertyValue(task, '업무명'),
+                    category: task.category,
+                    statusProp: statusProp,
+                    isCompleted: isCompleted,
+                    willShow: !isCompleted,
+                    availableProps: Object.keys(properties)
+                });
+                logCount++;
             }
 
             switch (this.currentDashboardFilter) {
