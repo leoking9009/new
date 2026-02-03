@@ -1310,14 +1310,19 @@ class NotionTaskManager {
         const dashboardTasksContainer = document.getElementById('dashboardTasks');
         const dashboardTasksTableBody = document.getElementById('dashboardTasksTableBody');
 
+        console.log(`📋 displayDashboardTasks - Filter: ${this.currentDashboardFilter}, Filtered count: ${filteredTasks.length}`);
+
         // Clear existing content
         dashboardTasksContainer.innerHTML = '';
         dashboardTasksTableBody.innerHTML = '';
 
         if (filteredTasks.length === 0) {
+            console.log(`❌ No tasks to display for filter: ${this.currentDashboardFilter}`);
             dashboardTasksContainer.innerHTML = '<div class="empty-state">해당하는 과제가 없습니다.</div>';
             return;
         }
+
+        console.log(`✅ Displaying ${filteredTasks.length} tasks`);
 
         // Display tasks
         filteredTasks.forEach(task => {
