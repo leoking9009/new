@@ -24,15 +24,6 @@ class NotionTaskManager {
         this.initTheme();
         this.loadAllTasksForDashboard();
         this.loadTasks('main');
-
-        // Debug: Check if assignee stats content exists
-        setTimeout(() => {
-            const element = document.getElementById('assignee-stats-content');
-            console.log('🔍 Assignee stats element check:', element ? 'Found' : 'NOT FOUND');
-            if (element) {
-                console.log('✅ Element details:', element);
-            }
-        }, 1000);
     }
 
     initEventListeners() {
@@ -40,7 +31,6 @@ class NotionTaskManager {
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', (e) => {
                 const tabName = e.currentTarget.dataset.tab;
-                console.log('🔍 Tab clicked:', tabName, 'Element:', e.currentTarget);
                 this.switchTab(tabName);
             });
         });
@@ -261,8 +251,6 @@ class NotionTaskManager {
     }
 
     switchTab(tabName) {
-        console.log(`🔄 Switching to tab: ${tabName}`);
-
         // Update active tab button
         document.querySelectorAll('.tab-button').forEach(button => {
             button.classList.toggle('active', button.dataset.tab === tabName);
@@ -281,48 +269,31 @@ class NotionTaskManager {
         const assigneeOverview = document.getElementById('assigneeOverviewContent');
         const assigneeStats = document.getElementById('assignee-stats-content');
 
-        console.log('🔍 Elements check:', {
-            tabContent: !!tabContent,
-            assigneeOverview: !!assigneeOverview,
-            assigneeStats: !!assigneeStats
-        });
-
         if (tabContent) tabContent.style.display = 'none';
         if (assigneeOverview) assigneeOverview.style.display = 'none';
         if (assigneeStats) assigneeStats.style.display = 'none';
 
         if (tabName === 'main' || tabName === 'other' || tabName === 'todo') {
-            console.log(`📋 Loading ${tabName} tasks`);
             if (tabContent) tabContent.style.display = 'block';
             this.loadTasks(tabName);
         } else if (tabName === 'calendar') {
-            console.log('📅 Loading calendar tab');
             if (tabContent) tabContent.style.display = 'block';
             this.renderCalendar();
         } else if (tabName === 'journal') {
-            console.log('📖 Loading journal tab');
             if (tabContent) tabContent.style.display = 'block';
             this.loadJournal();
         } else if (tabName === 'records') {
-            console.log('📋 Loading records tab');
             if (tabContent) tabContent.style.display = 'block';
             this.loadRecords();
         } else if (tabName === 'events') {
-            console.log('🎉 Loading events tab');
             if (tabContent) tabContent.style.display = 'block';
             this.loadEvents();
         } else if (tabName === 'assignee-stats') {
-            console.log('📊 Loading assignee stats page');
             if (assigneeStats) {
                 assigneeStats.style.display = 'block';
-                console.log('✅ Showing assignee stats content');
                 this.loadAssigneeStatsPage();
             } else {
                 console.error('❌ assignee-stats-content element not found');
-
-                // Check if element exists anywhere
-                const allElements = document.querySelectorAll('[id*="assignee"]');
-                console.log('🔍 All assignee-related elements:', Array.from(allElements).map(el => el.id));
             }
         }
     }
@@ -1019,8 +990,6 @@ class NotionTaskManager {
 
     async loadAllTasksForDashboard() {
         try {
-            console.log('🔄 Loading all tasks for dashboard and search...');
-
             // Load tasks from ALL databases for comprehensive search
             const [mainTasks, otherTasks, todoTasks, journalTasks, recordsTasks, eventsTasks] = await Promise.all([
                 this.fetchTasks('main'),
@@ -1030,14 +999,6 @@ class NotionTaskManager {
                 this.fetchTasks('records'),
                 this.fetchTasks('events')
             ]);
-
-            console.log(`📊 Loaded tasks from all databases:
-                - Main: ${mainTasks.length}
-                - Other: ${otherTasks.length}
-                - TODO: ${todoTasks.length}
-                - Journal: ${journalTasks.length}
-                - Records: ${recordsTasks.length}
-                - Events: ${eventsTasks.length}`);
 
             // Add category to tasks
             const mainTasksWithCategory = mainTasks.map(task => ({ ...task, category: '주요', tabType: 'main' }));
@@ -1057,8 +1018,6 @@ class NotionTaskManager {
                 ...eventsTasksWithCategory
             ];
 
-            console.log(`✅ Combined ${this.allTasks.length} total tasks from all databases`);
-
             // Sort by creation date descending
             this.allTasks.sort((a, b) => {
                 const dateA = new Date(a.created_time || 0);
@@ -1075,7 +1034,6 @@ class NotionTaskManager {
 
     async fetchTasks(tabName) {
         const databaseId = this.databases[tabName];
-        console.log(`🔍 Fetching tasks for ${tabName} with database ID: ${databaseId}`);
 
         try {
             const response = await this.makeNotionRequest('POST', `/v1/databases/${databaseId}/query`, {
@@ -1086,34 +1044,6 @@ class NotionTaskManager {
                     }
                 ]
             });
-            console.log(`✅ Successfully fetched ${response.results?.length || 0} tasks from ${tabName} database`);
-
-            // Debug: Log full response structure
-            console.log(`🔍 Full response for ${tabName}:`, response);
-
-            if (response.results && response.results.length > 0) {
-                // Log first task details for verification
-                const firstTask = response.results[0];
-                console.log(`📝 First task from ${tabName} - full object:`, firstTask);
-
-                const firstTitle = firstTask.properties['과제명']?.title?.[0]?.text?.content ||
-                                 firstTask.properties['Name']?.title?.[0]?.text?.content ||
-                                 'No title';
-                console.log(`📝 First task title from ${tabName}: "${firstTitle}"`);
-
-                // Check properties structure
-                console.log(`🔍 Available properties in ${tabName}:`, Object.keys(firstTask.properties || {}));
-
-                // Check for assignee property
-                const assigneeName = this.getTaskAssignee(firstTask);
-                if (assigneeName) {
-                    console.log(`👤 First task assignee from ${tabName}:`, assigneeName);
-                } else {
-                    console.log(`❌ No assignee found in first task from ${tabName}`);
-                }
-            } else {
-                console.log(`❌ No tasks returned from ${tabName} database`);
-            }
 
             // Add database info to each task for calendar
             const tasks = (response.results || []).map(task => ({
@@ -1250,14 +1180,6 @@ class NotionTaskManager {
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
-        // Debug: log filter type
-        if (this.currentDashboardFilter === 'in-progress') {
-            console.log(`🔍 Filtering for: ${this.currentDashboardFilter}`);
-        }
-
-        let logCount = 0;
-        const maxLogs = 5;
-
         // Only include main and other tasks in dashboard filtering
         return this.allTasks.filter(task => {
             // First filter: only main and other tasks
@@ -1279,19 +1201,6 @@ class NotionTaskManager {
             if (dueDateProp && dueDateProp.date && dueDateProp.date.start) {
                 dueDate = new Date(dueDateProp.date.start);
                 dueDate.setHours(0, 0, 0, 0);
-            }
-
-            // Debug logging for in-progress filter (only first few tasks)
-            if (this.currentDashboardFilter === 'in-progress' && logCount < maxLogs) {
-                console.log(`🔍 Task #${logCount + 1}:`, {
-                    title: this.getPropertyValue(task, '업무명'),
-                    category: task.category,
-                    statusProp: statusProp,
-                    isCompleted: isCompleted,
-                    willShow: !isCompleted,
-                    availableProps: Object.keys(properties)
-                });
-                logCount++;
             }
 
             switch (this.currentDashboardFilter) {
@@ -1324,19 +1233,14 @@ class NotionTaskManager {
         const dashboardTasksContainer = document.getElementById('dashboardTasks');
         const dashboardTasksTableBody = document.getElementById('dashboardTasksTableBody');
 
-        console.log(`📋 displayDashboardTasks - Filter: ${this.currentDashboardFilter}, Filtered count: ${filteredTasks.length}`);
-
         // Clear existing content
         dashboardTasksContainer.innerHTML = '';
         dashboardTasksTableBody.innerHTML = '';
 
         if (filteredTasks.length === 0) {
-            console.log(`❌ No tasks to display for filter: ${this.currentDashboardFilter}`);
             dashboardTasksContainer.innerHTML = '<div class="empty-state">해당하는 과제가 없습니다.</div>';
             return;
         }
-
-        console.log(`✅ Displaying ${filteredTasks.length} tasks`);
 
         // Display tasks
         filteredTasks.forEach(task => {
@@ -1614,40 +1518,19 @@ class NotionTaskManager {
             options.body = JSON.stringify(body);
         }
 
-        console.log('Making request to:', url);
-        console.log('Method:', method);
-        console.log('Body:', body);
-
         try {
             const response = await fetch(url, options);
-            console.log(`📡 ${method} ${url} - Status: ${response.status}`);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                console.error('❌ Error response:', errorData);
+                console.error('Error response:', errorData);
                 throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
-
-            // Special logging for database queries
-            if (url.includes('/databases/') && url.includes('/query')) {
-                const dbId = url.match(/databases\/([^\/]+)\/query/)?.[1];
-                const resultCount = result.results?.length || 0;
-                console.log(`📊 Database ${dbId} returned ${resultCount} results`);
-
-                if (resultCount > 0) {
-                    const firstTask = result.results[0];
-                    const title = firstTask.properties['과제명']?.title?.[0]?.text?.content ||
-                                firstTask.properties['Name']?.title?.[0]?.text?.content ||
-                                'No title';
-                    console.log(`📝 Sample task: "${title}"`);
-                }
-            }
-
             return result;
         } catch (error) {
-            console.error('❌ Fetch error:', error);
+            console.error('Fetch error:', error);
             throw error;
         }
     }
@@ -3911,25 +3794,20 @@ class NotionTaskManager {
     // 로그인 확인 및 관리
     async checkLogin() {
         try {
-            console.log('🔍 Starting checkLogin...');
             const userStr = localStorage.getItem('user');
 
             if (!userStr) {
-                console.log('❌ No user found in localStorage, redirecting to login');
                 window.location.href = '/login.html';
                 return;
             }
 
             const user = JSON.parse(userStr);
-            console.log('👤 User data from localStorage:', user);
 
             if (!user) {
-                console.log('❌ No user found, redirecting to login');
                 window.location.href = '/login.html';
                 return;
             }
 
-            console.log('✅ User found, setting current user');
             this.currentUser = user;
             this.updateUserInfo(user);
         } catch (error) {
