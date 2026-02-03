@@ -1071,7 +1071,14 @@ class NotionTaskManager {
         console.log(`🔍 Fetching tasks for ${tabName} with database ID: ${databaseId}`);
 
         try {
-            const response = await this.makeNotionRequest('POST', `/v1/databases/${databaseId}/query`, {});
+            const response = await this.makeNotionRequest('POST', `/v1/databases/${databaseId}/query`, {
+                sorts: [
+                    {
+                        timestamp: 'created_time',
+                        direction: 'descending'
+                    }
+                ]
+            });
             console.log(`✅ Successfully fetched ${response.results?.length || 0} tasks from ${tabName} database`);
 
             // Debug: Log full response structure
