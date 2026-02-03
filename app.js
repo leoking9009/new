@@ -1239,7 +1239,7 @@ class NotionTaskManager {
         // Only include main and other tasks in dashboard filtering
         return this.allTasks.filter(task => {
             // First filter: only main and other tasks
-            if (task.category !== 'main' && task.category !== 'other') {
+            if (task.category !== '주요' && task.category !== '기타') {
                 return false;
             }
 
