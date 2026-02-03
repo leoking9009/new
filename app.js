@@ -388,7 +388,14 @@ class NotionTaskManager {
         if (tableBody) tableBody.innerHTML = '';
 
         try {
-            const response = await this.makeNotionRequest('POST', `/v1/databases/${this.databases[tabName]}/query`);
+            const response = await this.makeNotionRequest('POST', `/v1/databases/${this.databases[tabName]}/query`, {
+                sorts: [
+                    {
+                        timestamp: 'created_time',
+                        direction: 'descending'
+                    }
+                ]
+            });
             const tasks = response.results;
 
             if (loadingElement) {
