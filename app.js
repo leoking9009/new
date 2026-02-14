@@ -2572,7 +2572,14 @@ class NotionTaskManager {
         }
 
         try {
-            const response = await this.makeNotionRequest('POST', `/v1/databases/${this.databases.todo}/query`);
+            const response = await this.makeNotionRequest('POST', `/v1/databases/${this.databases.todo}/query`, {
+                sorts: [
+                    {
+                        timestamp: 'created_time',
+                        direction: 'descending'
+                    }
+                ]
+            });
             const todos = response.results;
 
             if (loadingElement) {
